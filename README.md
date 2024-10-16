@@ -1,5 +1,5 @@
 # SETP-Coursework-1
-StudentID, GitHubID:
+StudentID, GitHubID, Name:
 
 - 2247067, 118484323, Gabriel
 - 2235538, 183316325, Yiwen
