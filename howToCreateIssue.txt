@@ -1,0 +1,21 @@
+Example of how to create an issue
+
+1.Search > in the commands tab or (cmd+shift+p on mac) 
+2.Click on Create an issue
+3.write and save of format->
+
+////////ignore/////////////
+
+Fix login issue
+
+Assignees: EdisonHussey
+Labels: bug
+Milestone: Sprint 1
+Projects: Oroskan/SETP-Coursework-1
+
+Description of the issue: There is a problem with the login button on the dashboard. Users report that clicking it does not lead to login, and instead the page refreshes without any action.
+
+
+///////////////ignore/////////////
+
+
