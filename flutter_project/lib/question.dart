@@ -5,36 +5,36 @@
 // fillInTheBlank
 
 
-import 'package:flutter/material.dart';
-import 'dart:math';
+// import 'package:flutter/material.dart';
+// import 'dart:math';
 
-//renders the logical component
-class MultipleChoiceWidget {
+// //renders the logical component
+// class MultipleChoiceWidget {
 
   
 
-  final MultipleChoice multipleChoice;
+//   final MultipleChoice multipleChoice;
 
-  MultipleChoiceWidget({this.multipleChoice});
-
-
-  correctIndex = Random().nextInt(multipleChoice.choices.length);
+//   MultipleChoiceWidget({this.multipleChoice});
 
 
+//   correctIndex = Random().nextInt(multipleChoice.choices.length);
 
-  return Widget;
-} 
 
-//logical component of quesiton
-class MultipleChoice{
 
-  final String question;
-  final List<String> choices;
-  final String answer;
+//   return Widget;
+// } 
 
-  MultipleChoice({this.question, this.choices, this.answer});
+// //logical component of quesiton
+// class MultipleChoice{
 
-} 
+//   final String question;
+//   final List<String> choices;
+//   final String answer;
+
+//   MultipleChoice({this.question, this.choices, this.answer});
+
+// } 
 
 
 
