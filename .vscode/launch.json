@@ -8,7 +8,7 @@
             "name": "Dart & Flutter",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main.dart"
+            "program": "flutter_project/lib/main.dart"
         }
     ]
 }
