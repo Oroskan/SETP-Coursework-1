@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'settings_menu.dart';
+import 'quiz_menu.dart'; // Add this import
+import 'notes_menu.dart'; // Add this import
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -53,7 +56,12 @@ class _HomePageState extends State<HomePage> {
           actions: [
             IconButton(
               icon: const Icon(Icons.settings),
-              onPressed: () {/* TODO: Implement settings */},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsMenu()),
+                );
+              },
             ),
           ],
         ),
@@ -200,7 +208,24 @@ class _HomePageState extends State<HomePage> {
     return NavigationBar(
       height: 60,
       selectedIndex: _selectedIndex,
-      onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+      onDestinationSelected: (index) {
+        setState(() => _selectedIndex = index);
+
+        // Handle navigation based on index
+        if (index == 1) {
+          // Quizzes
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const QuizMenu()),
+          );
+        } else if (index == 2) {
+          // Notes
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NotesMenu()),
+          );
+        }
+      },
       destinations: const [
         NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
         NavigationDestination(icon: Icon(Icons.quiz), label: 'Quizzes'),
