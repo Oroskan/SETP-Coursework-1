@@ -83,7 +83,7 @@ class _NotesMenuState extends State<NotesMenu> {
         },
         child: Column(
           children: [
-            Icon(Icons.note, color: Colors.white, size: 30), // 添加图标
+            Icon(Icons.note, color: Colors.white, size: 30), 
             const SizedBox(height: 8),
             Text(
               'Topic $noteNumber',

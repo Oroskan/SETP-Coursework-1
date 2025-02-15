@@ -84,7 +84,7 @@ class _QuizMenuState extends State<QuizMenu> {
         },
         child: Column(
           children: [
-            Icon(Icons.quiz, color: Colors.white, size: 30), // Quiz 图标
+            Icon(Icons.quiz, color: Colors.white, size: 30), 
             const SizedBox(height: 8),
             Text(
               'Quiz $quizNumber',
