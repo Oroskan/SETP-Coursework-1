@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'home.dart';
 import 'quiz_menu.dart';
 import 'theme.dart';
+import 'create_note.dart';
+
 
 class NotesMenu extends StatefulWidget {
   const NotesMenu({super.key});
@@ -11,12 +13,13 @@ class NotesMenu extends StatefulWidget {
 }
 
 class _NotesMenuState extends State<NotesMenu> {
+
   final int _selectedIndex = 2;
   bool darkMode = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
-  final List<Map<String, String>> notes = [
+  List<Map<String, String>> notes = [
     {'title': 'Introduction to Atomic Structure', 'subject': 'Chemistry'},
     {'title': 'Understanding Gravity', 'subject': 'Physics'},
     {'title': 'Basics of Genetics', 'subject': 'Biology'},
@@ -45,7 +48,18 @@ class _NotesMenuState extends State<NotesMenu> {
       return title.contains(query) || subject.contains(query);
     }).toList();
   }
+  void _addNewNote() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CreateNotePage()),
+    );
 
+    if (result != null && result is Map<String, String>) {
+      setState(() {
+        notes.add(result); 
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -86,7 +100,6 @@ class _NotesMenuState extends State<NotesMenu> {
                   // TODO: Implement settings navigation
                 },
               ),
-              // Add more drawer items here
             ],
           ),
         ),
@@ -183,7 +196,7 @@ class _NotesMenuState extends State<NotesMenu> {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: const Color.fromARGB(255, 134, 115, 255),
           padding: const EdgeInsets.all(16.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8.0),
@@ -219,17 +232,18 @@ class _NotesMenuState extends State<NotesMenu> {
   }
 
   Widget _buildAddNoteButton() {
-    return Align(
-      alignment: Alignment.bottomRight,
-      child: Container(
-        margin: const EdgeInsets.only(right: 16, bottom: 70),
-        height: 64,
-        width: 64,
-        child: FloatingActionButton(
-          onPressed: () {/* TODO: Implement create note page */},
-          child: const Text('+', style: TextStyle(fontSize: 18)),
-        ),
+  return Align(
+    alignment: Alignment.bottomRight,
+    child: Container(
+      margin: const EdgeInsets.only(right: 16, bottom: 70),
+      height: 64,
+      width: 64,
+      child: FloatingActionButton(
+        onPressed: _addNewNote,
+        child: const Text('+', style: TextStyle(fontSize: 18)),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
