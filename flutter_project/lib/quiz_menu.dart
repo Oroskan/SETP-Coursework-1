@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'home.dart';
 import 'notes_menu.dart';
 import 'theme.dart';
+import 'settings_menu.dart';
 
 class QuizMenu extends StatefulWidget {
   const QuizMenu({super.key});
@@ -112,7 +113,7 @@ class _QuizMenuState extends State<QuizMenu> {
                 leading: const Icon(Icons.settings),
                 title: const Text('Settings'),
                 onTap: () {
-                  // TODO: Implement settings navigation
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsMenu()));
                 },
               ),
               // Add more drawer items here

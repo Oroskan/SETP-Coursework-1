@@ -3,6 +3,7 @@ import 'home.dart';
 import 'quiz_menu.dart';
 import 'theme.dart';
 import 'create_note.dart';
+import 'settings_menu.dart';
 
 class NotesMenu extends StatefulWidget {
   const NotesMenu({super.key});
@@ -138,7 +139,7 @@ class _NotesMenuState extends State<NotesMenu> {
                 leading: const Icon(Icons.settings),
                 title: const Text('Settings'),
                 onTap: () {
-                  // TODO: Implement settings navigation
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsMenu()));
                 },
               ),
             ],
