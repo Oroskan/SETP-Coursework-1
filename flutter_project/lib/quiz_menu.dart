@@ -13,6 +13,38 @@ class QuizMenu extends StatefulWidget {
 class _QuizMenuState extends State<QuizMenu> {
   final int _selectedIndex = 1;
   bool darkMode = false;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  final List<Map<String, String>> quizzes = [
+    {'title': 'Chemical Bonding Quiz', 'subject': 'Chemistry'},
+    {'title': 'Forces and Motion', 'subject': 'Physics'},
+    {'title': 'DNA and RNA', 'subject': 'Biology'},
+    {'title': 'Algorithm Analysis', 'subject': 'Computer Science'},
+    {'title': 'Integration Methods', 'subject': 'Mathematics'},
+    {'title': 'Literature Analysis', 'subject': 'English'},
+    {'title': 'World War II', 'subject': 'History'},
+    {'title': 'Tectonic Plates', 'subject': 'Geography'},
+    {'title': 'Supply and Demand', 'subject': 'Economics'},
+    {'title': 'Cognitive Development', 'subject': 'Psychology'},
+    {'title': 'Cultural Studies', 'subject': 'Sociology'},
+  ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, String>> get filteredQuizzes {
+    if (_searchQuery.isEmpty) return quizzes;
+    return quizzes.where((quiz) {
+      final title = quiz['title']!.toLowerCase();
+      final subject = quiz['subject']!.toLowerCase();
+      final query = _searchQuery.toLowerCase();
+      return title.contains(query) || subject.contains(query);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,22 +52,101 @@ class _QuizMenuState extends State<QuizMenu> {
       data: getTheme(darkMode),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Quiz'),
+          title: const Text('Quizzes'),
           backgroundColor: Colors.purple[300],
+          leading: Builder(
+            builder: (context) => IconButton(
+              padding: EdgeInsets.zero,
+              icon: const CircleAvatar(
+                backgroundImage: AssetImage('assets/images/profilepic.jpg'),
+              ),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+        ),
+        drawer: Drawer(
+          child: ListView(
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.purple[300],
+                ),
+                child: const Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text('Settings'),
+                onTap: () {
+                  // TODO: Implement settings navigation
+                },
+              ),
+              // Add more drawer items here
+            ],
+          ),
         ),
         body: Container(
           color: Colors.purple[50],
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildQuizButton(1),
-                  ...List.generate(10, (index) => _buildQuizButton(index + 2)),
-                ],
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search quizzes...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
               ),
-            ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: filteredQuizzes.isEmpty
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/notfound.webp',
+                                height: 200,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'We searched far and wide, but no results were found.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: filteredQuizzes
+                                .map((quiz) => _buildQuizButton(quiz))
+                                .toList(),
+                          ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         floatingActionButton: _buildAddQuizButton(),
@@ -67,7 +178,7 @@ class _QuizMenuState extends State<QuizMenu> {
     );
   }
 
-  Widget _buildQuizButton(int quizNumber) {
+  Widget _buildQuizButton(Map<String, String> quiz) {
     return Container(
       margin: const EdgeInsets.only(top: 16.0),
       width: double.infinity,
@@ -80,23 +191,24 @@ class _QuizMenuState extends State<QuizMenu> {
           ),
         ),
         onPressed: () {
-          Navigator.pushNamed(context, '/quiz$quizNumber');
+          Navigator.pushNamed(context,
+              '/quiz/${quiz['subject']?.toLowerCase().replaceAll(' ', '_')}/${quiz['title']?.toLowerCase().replaceAll(' ', '_')}');
         },
         child: Column(
           children: [
-            Icon(Icons.quiz, color: Colors.white, size: 30), 
+            const Icon(Icons.quiz, color: Colors.white, size: 30),
             const SizedBox(height: 8),
             Text(
-              'Quiz $quizNumber',
+              quiz['title']!,
               style: const TextStyle(
                 fontSize: 24,
                 color: Colors.white,
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Topic',
-              style: TextStyle(
+            Text(
+              quiz['subject']!,
+              style: const TextStyle(
                 fontSize: 12,
                 color: Colors.white,
               ),
