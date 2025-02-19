@@ -16,73 +16,84 @@ class _CreateNotePageState extends State<CreateNotePage> {
     String title = _titleController.text.trim();
     String subtitle = _subtitleController.text.trim();
     String content = _contentController.text.trim();
-    if (title.isNotEmpty || subtitle.isNotEmpty || content.isNotEmpty) {
-      Navigator.pop(context, {
-        'title': title,
-        'subtitle': subtitle,
-        'content': content,
-      });
-    } else {
+
+    if (title.isEmpty && subtitle.isEmpty && content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Note cannot be empty')),
       );
+      return;
     }
+
+    // Create a Map with non-null values
+    Map<String, String> noteData = {
+      'title': title.isEmpty ? 'Untitled' : title,
+      'subtitle': subtitle.isEmpty ? '' : subtitle,
+      'content': content.isEmpty ? '' : content,
+    };
+
+    Navigator.pop(context, noteData);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: getTheme(darkMode),
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.purple[300],
-          title: Text("New Note"),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-          actions: [
-            TextButton(
-              onPressed: _saveNote,
-              child: Text("Done", style: TextStyle(color: Colors.white)),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, null);
+        return false;
+      },
+      child: Theme(
+        data: getTheme(darkMode),
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.purple[300],
+            title: Text("New Note"),
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context, null),
             ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: "Topic",
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
+            actions: [
+              TextButton(
+                onPressed: _saveNote,
+                child: Text("Done", style: TextStyle(color: Colors.white)),
               ),
-              SizedBox(height: 16),
-              TextField(
-                controller: _subtitleController,
-                decoration: InputDecoration(
-                  labelText: "Subject",
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-              Expanded(
-                child: TextField(
-                  controller: _contentController,
+            ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: "Content",
+                    labelText: "Topic",
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     border: OutlineInputBorder(),
                   ),
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
                 ),
-              ),
-            ],
+                SizedBox(height: 16),
+                TextField(
+                  controller: _subtitleController,
+                  decoration: InputDecoration(
+                    labelText: "Subject",
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16),
+                Expanded(
+                  child: TextField(
+                    controller: _contentController,
+                    decoration: InputDecoration(
+                      labelText: "Content",
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

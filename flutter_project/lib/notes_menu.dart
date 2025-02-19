@@ -4,7 +4,6 @@ import 'quiz_menu.dart';
 import 'theme.dart';
 import 'create_note.dart';
 
-
 class NotesMenu extends StatefulWidget {
   const NotesMenu({super.key});
 
@@ -13,24 +12,31 @@ class NotesMenu extends StatefulWidget {
 }
 
 class _NotesMenuState extends State<NotesMenu> {
-
   final int _selectedIndex = 2;
   bool darkMode = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   List<Map<String, String>> notes = [
-    {'title': 'Introduction to Atomic Structure', 'subject': 'Chemistry'},
-    {'title': 'Understanding Gravity', 'subject': 'Physics'},
-    {'title': 'Basics of Genetics', 'subject': 'Biology'},
-    {'title': 'Data Structures Overview', 'subject': 'Computer Science'},
-    {'title': 'Calculus Fundamentals', 'subject': 'Mathematics'},
-    {'title': 'Advanced Grammar', 'subject': 'English'},
-    {'title': 'Medieval History', 'subject': 'History'},
-    {'title': 'Climate Patterns', 'subject': 'Geography'},
-    {'title': 'Market Economics', 'subject': 'Economics'},
-    {'title': 'Human Behavior', 'subject': 'Psychology'},
-    {'title': 'Social Structures', 'subject': 'Sociology'},
+    {
+      'title': 'Introduction to Atomic Structure',
+      'subject': 'Chemistry',
+      'content': ''
+    },
+    {'title': 'Understanding Gravity', 'subject': 'Physics', 'content': ''},
+    {'title': 'Basics of Genetics', 'subject': 'Biology', 'content': ''},
+    {
+      'title': 'Data Structures Overview',
+      'subject': 'Computer Science',
+      'content': ''
+    },
+    {'title': 'Calculus Fundamentals', 'subject': 'Mathematics', 'content': ''},
+    {'title': 'Advanced Grammar', 'subject': 'English', 'content': ''},
+    {'title': 'Medieval History', 'subject': 'History', 'content': ''},
+    {'title': 'Climate Patterns', 'subject': 'Geography', 'content': ''},
+    {'title': 'Market Economics', 'subject': 'Economics', 'content': ''},
+    {'title': 'Human Behavior', 'subject': 'Psychology', 'content': ''},
+    {'title': 'Social Structures', 'subject': 'Sociology', 'content': ''},
   ];
 
   @override
@@ -48,6 +54,7 @@ class _NotesMenuState extends State<NotesMenu> {
       return title.contains(query) || subject.contains(query);
     }).toList();
   }
+
   void _addNewNote() async {
     final result = await Navigator.push(
       context,
@@ -56,10 +63,15 @@ class _NotesMenuState extends State<NotesMenu> {
 
     if (result != null && result is Map<String, String>) {
       setState(() {
-        notes.add(result); 
+        notes.add({
+          'title': result['title'] ?? 'Untitled',
+          'subject': result['subtitle'] ?? '',
+          'content': result['content'] ?? '',
+        });
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -232,18 +244,17 @@ class _NotesMenuState extends State<NotesMenu> {
   }
 
   Widget _buildAddNoteButton() {
-  return Align(
-    alignment: Alignment.bottomRight,
-    child: Container(
-      margin: const EdgeInsets.only(right: 16, bottom: 70),
-      height: 64,
-      width: 64,
-      child: FloatingActionButton(
-        onPressed: _addNewNote,
-        child: const Text('+', style: TextStyle(fontSize: 18)),
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: Container(
+        margin: const EdgeInsets.only(right: 16, bottom: 70),
+        height: 64,
+        width: 64,
+        child: FloatingActionButton(
+          onPressed: _addNewNote,
+          child: const Text('+', style: TextStyle(fontSize: 18)),
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }
