@@ -72,6 +72,35 @@ class _NotesMenuState extends State<NotesMenu> {
     }
   }
 
+  void _deleteNote(int index) {
+    setState(() {
+      notes.removeAt(index);
+    });
+  }
+
+  Future<bool> _confirmDelete() async {
+    return await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Delete Note'),
+              content: const Text('Are you sure you want to delete this note?'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -203,41 +232,58 @@ class _NotesMenuState extends State<NotesMenu> {
   }
 
   Widget _buildNoteButton(Map<String, String> note) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16.0),
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 134, 115, 255),
-          padding: const EdgeInsets.all(16.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+    final index = notes.indexOf(note);
+    return Dismissible(
+      key: Key(note['title']!),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) => _confirmDelete(),
+      onDismissed: (_) => _deleteNote(index),
+      background: Container(
+        margin: const EdgeInsets.only(top: 16.0),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(8.0),
         ),
-        onPressed: () {
-          Navigator.pushNamed(context,
-              '/notes/${note['subject']?.toLowerCase().replaceAll(' ', '_')}/${note['title']?.toLowerCase().replaceAll(' ', '_')}');
-        },
-        child: Column(
-          children: [
-            const Icon(Icons.note, color: Colors.white, size: 30),
-            const SizedBox(height: 8),
-            Text(
-              note['title']!,
-              style: const TextStyle(
-                fontSize: 24,
-                color: Colors.white,
-              ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20.0),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      child: Container(
+        margin: const EdgeInsets.only(top: 16.0),
+        width: double.infinity,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 134, 115, 255),
+            padding: const EdgeInsets.all(16.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
             ),
-            const SizedBox(height: 4),
-            Text(
-              note['subject']!,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pushNamed(context,
+                '/notes/${note['subject']?.toLowerCase().replaceAll(' ', '_')}/${note['title']?.toLowerCase().replaceAll(' ', '_')}');
+          },
+          child: Column(
+            children: [
+              const Icon(Icons.note, color: Colors.white, size: 30),
+              const SizedBox(height: 8),
+              Text(
+                note['title']!,
+                style: const TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                note['subject']!,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
