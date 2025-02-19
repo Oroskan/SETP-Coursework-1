@@ -252,39 +252,55 @@ class _NotesMenuState extends State<NotesMenu> {
       child: Container(
         margin: const EdgeInsets.only(top: 16.0),
         width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 134, 115, 255),
-            padding: const EdgeInsets.all(16.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 134, 115, 255),
+                  padding: const EdgeInsets.all(16.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pushNamed(context,
+                      '/notes/${note['subject']?.toLowerCase().replaceAll(' ', '_')}/${note['title']?.toLowerCase().replaceAll(' ', '_')}');
+                },
+                child: Column(
+                  children: [
+                    const Icon(Icons.note, color: Colors.white, size: 30),
+                    const SizedBox(height: 8),
+                    Text(
+                      note['title']!,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      note['subject']!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ), 
+              ),
             ),
+            IconButton(
+            icon: const Icon(Icons.edit, color: Colors.blue),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/edit_note',
+                arguments: note,
+              );
+            },
           ),
-          onPressed: () {
-            Navigator.pushNamed(context,
-                '/notes/${note['subject']?.toLowerCase().replaceAll(' ', '_')}/${note['title']?.toLowerCase().replaceAll(' ', '_')}');
-          },
-          child: Column(
-            children: [
-              const Icon(Icons.note, color: Colors.white, size: 30),
-              const SizedBox(height: 8),
-              Text(
-                note['title']!,
-                style: const TextStyle(
-                  fontSize: 24,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                note['subject']!,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
