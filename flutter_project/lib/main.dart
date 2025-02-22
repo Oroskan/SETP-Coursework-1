@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
+import 'splash_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: SplashScreen(), 
+  ));
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
