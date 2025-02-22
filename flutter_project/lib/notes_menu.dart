@@ -4,6 +4,7 @@ import 'quiz_menu.dart';
 import 'theme.dart';
 import 'create_note.dart';
 import 'settings_menu.dart';
+import 'note_editor.dart';
 
 class NotesMenu extends StatefulWidget {
   const NotesMenu({super.key});
@@ -59,7 +60,7 @@ class _NotesMenuState extends State<NotesMenu> {
   void _addNewNote() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => CreateNotePage()),
+      MaterialPageRoute(builder: (context) => const CreateNotePage()),
     );
 
     if (result != null && result is Map<String, String>) {
@@ -139,7 +140,10 @@ class _NotesMenuState extends State<NotesMenu> {
                 leading: const Icon(Icons.settings),
                 title: const Text('Settings'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsMenu()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsMenu()));
                 },
               ),
             ],
@@ -260,9 +264,27 @@ class _NotesMenuState extends State<NotesMenu> {
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
-          onPressed: () {
-            Navigator.pushNamed(context,
-                '/notes/${note['subject']?.toLowerCase().replaceAll(' ', '_')}/${note['title']?.toLowerCase().replaceAll(' ', '_')}');
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NoteEditorPage(
+                  initialTitle: note['title']!,
+                  initialSubject: note['subject']!,
+                  initialContent: note['content']!,
+                  noteIndex: index,
+                ),
+              ),
+            );
+            if (result != null && result is Map<String, dynamic>) {
+              setState(() {
+                notes[result['noteIndex']] = {
+                  'title': result['title'],
+                  'subject': result['subject'],
+                  'content': result['content'],
+                };
+              });
+            }
           },
           child: Column(
             children: [
