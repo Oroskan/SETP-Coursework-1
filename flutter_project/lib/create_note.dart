@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'theme.dart';
 
 class CreateNotePage extends StatefulWidget {
-  const CreateNotePage({super.key});
-
   @override
-  CreateNotePageState createState() => CreateNotePageState();
+  _CreateNotePageState createState() => _CreateNotePageState();
 }
 
-class CreateNotePageState extends State<CreateNotePage> {
+class _CreateNotePageState extends State<CreateNotePage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _subtitleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
@@ -21,7 +19,7 @@ class CreateNotePageState extends State<CreateNotePage> {
 
     if (title.isEmpty && subtitle.isEmpty && content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Note cannot be empty')),
+        SnackBar(content: Text('Note cannot be empty')),
       );
       return;
     }
@@ -38,29 +36,25 @@ class CreateNotePageState extends State<CreateNotePage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          return;
-        }
+    return WillPopScope(
+      onWillPop: () async {
         Navigator.pop(context, null);
+        return false;
       },
       child: Theme(
         data: getTheme(darkMode),
         child: Scaffold(
           appBar: AppBar(
             backgroundColor: Colors.purple[300],
-            title: const Text("New Note"),
+            title: Text("New Note"),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context, null),
             ),
             actions: [
               TextButton(
                 onPressed: _saveNote,
-                child:
-                    const Text("Done", style: TextStyle(color: Colors.white)),
+                child: Text("Done", style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -70,26 +64,26 @@ class CreateNotePageState extends State<CreateNotePage> {
               children: [
                 TextField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Topic",
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 TextField(
                   controller: _subtitleController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: "Subject",
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Expanded(
                   child: TextField(
                     controller: _contentController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: "Content",
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                       border: OutlineInputBorder(),
