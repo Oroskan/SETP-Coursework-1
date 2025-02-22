@@ -4,6 +4,7 @@ import 'quiz_menu.dart';
 import 'theme.dart';
 import 'create_note.dart';
 import 'settings_menu.dart';
+import 'note_editor.dart';
 
 class NotesMenu extends StatefulWidget {
   const NotesMenu({super.key});
@@ -59,7 +60,7 @@ class _NotesMenuState extends State<NotesMenu> {
   void _addNewNote() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => CreateNotePage()),
+      MaterialPageRoute(builder: (context) => const CreateNotePage()),
     );
 
     if (result != null && result is Map<String, String>) {
@@ -139,7 +140,10 @@ class _NotesMenuState extends State<NotesMenu> {
                 leading: const Icon(Icons.settings),
                 title: const Text('Settings'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsMenu()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsMenu()));
                 },
               ),
             ],
@@ -252,55 +256,57 @@ class _NotesMenuState extends State<NotesMenu> {
       child: Container(
         margin: const EdgeInsets.only(top: 16.0),
         width: double.infinity,
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 134, 115, 255),
-                  padding: const EdgeInsets.all(16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pushNamed(context,
-                      '/notes/${note['subject']?.toLowerCase().replaceAll(' ', '_')}/${note['title']?.toLowerCase().replaceAll(' ', '_')}');
-                },
-                child: Column(
-                  children: [
-                    const Icon(Icons.note, color: Colors.white, size: 30),
-                    const SizedBox(height: 8),
-                    Text(
-                      note['title']!,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      note['subject']!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ), 
-              ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 134, 115, 255),
+            padding: const EdgeInsets.all(16.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
             ),
-            IconButton(
-            icon: const Icon(Icons.edit, color: Colors.blue),
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/edit_note',
-                arguments: note,
-              );
-            },
           ),
-          ],
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NoteEditorPage(
+                  initialTitle: note['title']!,
+                  initialSubject: note['subject']!,
+                  initialContent: note['content']!,
+                  noteIndex: index,
+                ),
+              ),
+            );
+            if (result != null && result is Map<String, dynamic>) {
+              setState(() {
+                notes[result['noteIndex']] = {
+                  'title': result['title'],
+                  'subject': result['subject'],
+                  'content': result['content'],
+                };
+              });
+            }
+          },
+          child: Column(
+            children: [
+              const Icon(Icons.note, color: Colors.white, size: 30),
+              const SizedBox(height: 8),
+              Text(
+                note['title']!,
+                style: const TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                note['subject']!,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
