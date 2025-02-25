@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'theme.dart';
 
 class CreateNotePage extends StatefulWidget {
+  const CreateNotePage({super.key});
+
   @override
-  _CreateNotePageState createState() => _CreateNotePageState();
+  CreateNotePageState createState() => CreateNotePageState();
 }
 
-class _CreateNotePageState extends State<CreateNotePage> {
+class CreateNotePageState extends State<CreateNotePage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _subtitleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
@@ -19,7 +21,7 @@ class _CreateNotePageState extends State<CreateNotePage> {
 
     if (title.isEmpty && subtitle.isEmpty && content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Note cannot be empty')),
+        const SnackBar(content: Text('Note cannot be empty')),
       );
       return;
     }
@@ -36,63 +38,80 @@ class _CreateNotePageState extends State<CreateNotePage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
         Navigator.pop(context, null);
-        return false;
       },
       child: Theme(
         data: getTheme(darkMode),
         child: Scaffold(
+          backgroundColor: darkMode ? Colors.black87 : Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.purple[300],
-            title: Text("New Note"),
+            title: const Text("New Note"),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context, null),
             ),
             actions: [
               TextButton(
                 onPressed: _saveNote,
-                child: Text("Done", style: TextStyle(color: Colors.white)),
+                child:
+                    const Text("Done", style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: "Topic",
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: _subtitleController,
-                  decoration: InputDecoration(
-                    labelText: "Subject",
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _contentController,
-                    decoration: InputDecoration(
-                      labelText: "Content",
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: OutlineInputBorder(),
+          body: Container(
+            color: darkMode ? Colors.black87 : const Color(0xFFFAFAFA),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _titleController,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Title',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
                     ),
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                  ),
+                    TextField(
+                      controller: _subtitleController,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Subject',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
+                    ),
+                    const Divider(height: 32),
+                    TextField(
+                      controller: _contentController,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Start typing your note...',
+                        border: InputBorder.none,
+                      ),
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
