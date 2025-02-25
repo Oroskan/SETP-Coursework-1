@@ -41,14 +41,13 @@ class CreateNotePageState extends State<CreateNotePage> {
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
         Navigator.pop(context, null);
       },
       child: Theme(
         data: getTheme(darkMode),
         child: Scaffold(
+          backgroundColor: darkMode ? Colors.black87 : Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.purple[300],
             title: const Text("New Note"),
@@ -64,41 +63,55 @@ class CreateNotePageState extends State<CreateNotePage> {
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: "Topic",
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _subtitleController,
-                  decoration: const InputDecoration(
-                    labelText: "Subject",
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _contentController,
-                    decoration: const InputDecoration(
-                      labelText: "Content",
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: OutlineInputBorder(),
+          body: Container(
+            color: darkMode ? Colors.black87 : const Color(0xFFFAFAFA),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _titleController,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Title',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
                     ),
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                  ),
+                    TextField(
+                      controller: _subtitleController,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Subject',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      ),
+                    ),
+                    const Divider(height: 32),
+                    TextField(
+                      controller: _contentController,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Start typing your note...',
+                        border: InputBorder.none,
+                      ),
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
