@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quiz.dart';
-import '../notes/summary_page.dart';
+import 'summary_page.dart';
 
 bool answered = false;
 
