@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home.dart';
-import 'notes_menu.dart';
+import 'notes/notes_menu.dart';
 import 'theme.dart';
 import 'settings_menu.dart';
 
@@ -113,7 +113,8 @@ class _QuizMenuState extends State<QuizMenu> {
                 leading: const Icon(Icons.settings),
                 title: const Text('Settings'),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => SettingsMenu()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SettingsMenu()));
                 },
               ),
               // Add more drawer items here
