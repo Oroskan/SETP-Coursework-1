@@ -1,15 +1,12 @@
-
-
 import 'package:flutter/material.dart';
 import 'quiz.dart';
 import 'summary_page.dart';
 
+bool answered = false;
 
-bool answered=false; ///will find a work around for this x2
-
+///will find a work around for this x2
 
 class QuizScreen extends StatefulWidget {
-
   bool answered = false;
 
   final Color cardColor;
@@ -17,40 +14,32 @@ class QuizScreen extends StatefulWidget {
   final completedQuizzes;
   final Quiz quiz;
 
-  QuizScreen({
-
-    required this.backgroundColor,
-    required this.cardColor,
-    required this.completedQuizzes,
-    required this.quiz});
+  QuizScreen(
+      {required this.backgroundColor,
+      required this.cardColor,
+      required this.completedQuizzes,
+      required this.quiz});
 
   @override
   _QuizScreenState createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  int correctCount=0;
-  int incorrectCount=0;
-  int startTime=(DateTime.now().millisecondsSinceEpoch/1000).toInt();
-
+  int correctCount = 0;
+  int incorrectCount = 0;
+  int startTime = (DateTime.now().millisecondsSinceEpoch / 1000).toInt();
 
   int currentQuestionIndex = 0;
 
   void skipQuestion() {
     setState(() {
-
-      if(answered==false){
-          incorrectCount++;
-
-        }
-      answered=false;
+      if (answered == false) {
+        incorrectCount++;
+      }
+      answered = false;
 
       if (currentQuestionIndex < widget.quiz.questions.length - 1) {
-       
-        
         currentQuestionIndex++;
-
-        
       } else {
         Navigator.pop(context);
 
@@ -61,19 +50,19 @@ class _QuizScreenState extends State<QuizScreen> {
               correctAnswers: correctCount,
               incorrectAnswers: incorrectCount,
               message: "You're learning",
-              timeTaken: double.parse(((DateTime.now().millisecondsSinceEpoch / 1000) - (startTime )).toStringAsFixed(2)),
-
+              timeTaken: double.parse(
+                  ((DateTime.now().millisecondsSinceEpoch / 1000) - (startTime))
+                      .toStringAsFixed(2)),
             ),
           ),
-
-  );
-      
+        );
       }
     });
   }
 
   void answerQuestion(int index) {
-    MultipleChoice currentQuestion = widget.quiz.questions[currentQuestionIndex];
+    MultipleChoice currentQuestion =
+        widget.quiz.questions[currentQuestionIndex];
     print(correctCount);
 
     if (currentQuestion.choices[index] == currentQuestion.answer) {
@@ -85,20 +74,18 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    MultipleChoice currentQuestion = widget.quiz.questions[currentQuestionIndex];
+    MultipleChoice currentQuestion =
+        widget.quiz.questions[currentQuestionIndex];
 
     return Scaffold(
       backgroundColor: widget.backgroundColor,
       appBar: AppBar(
         backgroundColor: widget.backgroundColor,
-
         leading: IconButton(
           onPressed: () {
-
-            if(currentQuestionIndex==widget.quiz.questions.length-1){
-              Navigator.pop(context, widget.completedQuizzes+1);
-            }
-            else{
+            if (currentQuestionIndex == widget.quiz.questions.length - 1) {
+              Navigator.pop(context, widget.completedQuizzes + 1);
+            } else {
               Navigator.pop(context, widget.completedQuizzes);
             }
           },
@@ -137,12 +124,11 @@ class _QuizScreenState extends State<QuizScreen> {
                 amount: 30,
               ),
               SizedBox(height: 30),
-
               for (int i = 0; i < currentQuestion.choices.length; i++)
                 Aligned(
                   child: CustomTextDisplayBox(
                     color: widget.cardColor,
-                    key: ValueKey(currentQuestionIndex), 
+                    key: ValueKey(currentQuestionIndex),
                     text: currentQuestion.choices[i],
                     hotkey: '${i + 1}',
                     onTap: () {
@@ -150,11 +136,11 @@ class _QuizScreenState extends State<QuizScreen> {
 
                       //currently no verification of answering?
                     },
-                    isCorrect: currentQuestion.choices[i] == currentQuestion.answer,
+                    isCorrect:
+                        currentQuestion.choices[i] == currentQuestion.answer,
                   ),
                   amount: 30,
                 ),
-
               SizedBox(height: 30),
               Aligned(
                 child: CustomTextDisplayBox(
@@ -172,7 +158,6 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 }
-
 
 class Aligned extends StatelessWidget {
   final Widget child;
@@ -213,7 +198,6 @@ class CustomTextDisplayBox extends StatefulWidget {
 }
 
 class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
-
   late Color _boxColor;
 
   void initState() {
@@ -221,18 +205,15 @@ class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
     _boxColor = widget.color;
   }
 
-
   bool _answered = false; // Keep track of whether the user has answered
 
   void _handleTap() {
-
-
-     if (!answered && widget.isCorrect != null) {  
-    setState(() {
-      _boxColor = widget.isCorrect! ? Colors.green : Colors.red;
-      answered = true; 
-    });
-  }
+    if (!answered && widget.isCorrect != null) {
+      setState(() {
+        _boxColor = widget.isCorrect! ? Colors.green : Colors.red;
+        answered = true;
+      });
+    }
 
     widget.onTap();
   }
@@ -300,7 +281,7 @@ class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
 class CurvedProgressBar extends StatelessWidget {
   final double percentage;
 
-  CurvedProgressBar({required  this.percentage});
+  CurvedProgressBar({required this.percentage});
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +297,7 @@ class CurvedProgressBar extends StatelessWidget {
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
-            widthFactor: percentage, 
+            widthFactor: percentage,
             child: Container(
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 99, 174, 116),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
-import 'theme.dart';
+import '../theme.dart';
 
 class NoteEditorPage extends StatefulWidget {
   final String initialTitle;

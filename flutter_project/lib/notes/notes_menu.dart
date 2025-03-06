@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'home.dart';
-import 'quiz_menu.dart';
-import 'theme.dart';
+import '../home.dart';
+import '../quiz_menu.dart';
+import '../theme.dart';
 import 'create_note.dart';
-import 'settings_menu.dart';
+import '../settings_menu.dart';
 import 'note_editor.dart';
 
 class NotesMenu extends StatefulWidget {
