@@ -86,10 +86,10 @@ class NoteEditorPageState extends State<NoteEditorPage> {
       data: getTheme(darkMode),
       child: PopScope(
         canPop: !_hasUnsavedChanges,
-        onPopInvoked: (didPop) async {
+        onPopInvokedWithResult: (didPop, [result]) async {
           if (didPop) return;
 
-          final shouldPop = await showDialog<bool>(
+          await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Unsaved Changes'),
@@ -116,12 +116,6 @@ class NoteEditorPageState extends State<NoteEditorPage> {
               ],
             ),
           );
-
-          if (shouldPop ?? false) {
-            if (context.mounted) {
-              Navigator.of(context).pop();
-            }
-          }
         },
         child: Scaffold(
           backgroundColor: darkMode ? Colors.black87 : Colors.white,

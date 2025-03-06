@@ -26,7 +26,6 @@ class CreateNotePageState extends State<CreateNotePage> {
       return;
     }
 
-    // Create a Map with non-null values
     Map<String, String> noteData = {
       'title': title.isEmpty ? 'Untitled' : title,
       'subtitle': subtitle.isEmpty ? '' : subtitle,
@@ -40,7 +39,7 @@ class CreateNotePageState extends State<CreateNotePage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, [result]) async {
         if (didPop) return;
         Navigator.pop(context, null);
       },
