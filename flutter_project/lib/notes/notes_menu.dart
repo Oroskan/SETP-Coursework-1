@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../home.dart';
 import '../quiz_menu.dart';
 import '../theme.dart';
 import 'create_note.dart';
 import '../settings_menu.dart';
 import 'note_editor.dart';
+import 'note.dart';
 
 class NotesMenu extends StatefulWidget {
   const NotesMenu({super.key});
@@ -18,28 +20,43 @@ class _NotesMenuState extends State<NotesMenu> {
   bool darkMode = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  late Box<Note> notesBox;
 
-  List<Map<String, String>> notes = [
-    {
-      'title': 'Introduction to Atomic Structure',
-      'subject': 'Chemistry',
-      'content': ''
-    },
-    {'title': 'Understanding Gravity', 'subject': 'Physics', 'content': ''},
-    {'title': 'Basics of Genetics', 'subject': 'Biology', 'content': ''},
-    {
-      'title': 'Data Structures Overview',
-      'subject': 'Computer Science',
-      'content': ''
-    },
-    {'title': 'Calculus Fundamentals', 'subject': 'Mathematics', 'content': ''},
-    {'title': 'Advanced Grammar', 'subject': 'English', 'content': ''},
-    {'title': 'Medieval History', 'subject': 'History', 'content': ''},
-    {'title': 'Climate Patterns', 'subject': 'Geography', 'content': ''},
-    {'title': 'Market Economics', 'subject': 'Economics', 'content': ''},
-    {'title': 'Human Behavior', 'subject': 'Psychology', 'content': ''},
-    {'title': 'Social Structures', 'subject': 'Sociology', 'content': ''},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    notesBox = Hive.box<Note>('notes');
+
+    if (notesBox.isEmpty) {
+      _populateSampleNotes();
+    }
+  }
+
+  void _populateSampleNotes() {
+    final sampleNotes = [
+      Note(
+          title: 'Introduction to Atomic Structure',
+          subject: 'Chemistry',
+          content: ''),
+      Note(title: 'Understanding Gravity', subject: 'Physics', content: ''),
+      Note(title: 'Basics of Genetics', subject: 'Biology', content: ''),
+      Note(
+          title: 'Data Structures Overview',
+          subject: 'Computer Science',
+          content: ''),
+      Note(title: 'Calculus Fundamentals', subject: 'Mathematics', content: ''),
+      Note(title: 'Advanced Grammar', subject: 'English', content: ''),
+      Note(title: 'Medieval History', subject: 'History', content: ''),
+      Note(title: 'Climate Patterns', subject: 'Geography', content: ''),
+      Note(title: 'Market Economics', subject: 'Economics', content: ''),
+      Note(title: 'Human Behavior', subject: 'Psychology', content: ''),
+      Note(title: 'Social Structures', subject: 'Sociology', content: ''),
+    ];
+
+    for (var note in sampleNotes) {
+      notesBox.add(note);
+    }
+  }
 
   @override
   void dispose() {
@@ -47,11 +64,13 @@ class _NotesMenuState extends State<NotesMenu> {
     super.dispose();
   }
 
-  List<Map<String, String>> get filteredNotes {
-    if (_searchQuery.isEmpty) return notes;
-    return notes.where((note) {
-      final title = note['title']!.toLowerCase();
-      final subject = note['subject']!.toLowerCase();
+  List<Note> get filteredNotes {
+    if (_searchQuery.isEmpty) {
+      return notesBox.values.toList();
+    }
+    return notesBox.values.where((note) {
+      final title = note.title.toLowerCase();
+      final subject = note.subject.toLowerCase();
       final query = _searchQuery.toLowerCase();
       return title.contains(query) || subject.contains(query);
     }).toList();
@@ -63,42 +82,37 @@ class _NotesMenuState extends State<NotesMenu> {
       MaterialPageRoute(builder: (context) => const CreateNotePage()),
     );
 
-    if (result != null && result is Map<String, String>) {
+    if (result != null && result is Note) {
       setState(() {
-        notes.add({
-          'title': result['title'] ?? 'Untitled',
-          'subject': result['subtitle'] ?? '',
-          'content': result['content'] ?? '',
-        });
+        notesBox.add(result);
       });
     }
   }
 
   void _deleteNote(int index) {
     setState(() {
-      notes.removeAt(index);
+      final note = filteredNotes[index];
+      note.delete();
     });
   }
 
   Future<bool> _confirmDelete() async {
     return await showDialog(
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Delete Note'),
-              content: const Text('Are you sure you want to delete this note?'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('Delete Note'),
+            content: const Text('Are you sure you want to delete this note?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
         ) ??
         false;
   }
@@ -198,9 +212,11 @@ class _NotesMenuState extends State<NotesMenu> {
                           )
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
-                            children: filteredNotes
-                                .map((note) => _buildNoteButton(note))
-                                .toList(),
+                            children: List.generate(
+                              filteredNotes.length,
+                              (index) =>
+                                  _buildNoteButton(filteredNotes[index], index),
+                            ),
                           ),
                   ),
                 ),
@@ -236,10 +252,9 @@ class _NotesMenuState extends State<NotesMenu> {
     );
   }
 
-  Widget _buildNoteButton(Map<String, String> note) {
-    final index = notes.indexOf(note);
+  Widget _buildNoteButton(Note note, int index) {
     return Dismissible(
-      key: Key(note['title']!),
+      key: Key(note.key.toString()),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) => _confirmDelete(),
       onDismissed: (_) => _deleteNote(index),
@@ -269,20 +284,18 @@ class _NotesMenuState extends State<NotesMenu> {
               context,
               MaterialPageRoute(
                 builder: (context) => NoteEditorPage(
-                  initialTitle: note['title']!,
-                  initialSubject: note['subject']!,
-                  initialContent: note['content']!,
+                  note: note,
                   noteIndex: index,
                 ),
               ),
             );
-            if (result != null && result is Map<String, dynamic>) {
+            if (result != null && result is Note) {
               setState(() {
-                notes[result['noteIndex']] = {
-                  'title': result['title'],
-                  'subject': result['subject'],
-                  'content': result['content'],
-                };
+                // Update the note in the box
+                final boxIndex = notesBox.values.toList().indexOf(note);
+                if (boxIndex >= 0) {
+                  notesBox.putAt(boxIndex, result);
+                }
               });
             }
           },
@@ -291,7 +304,7 @@ class _NotesMenuState extends State<NotesMenu> {
               const Icon(Icons.note, color: Colors.white, size: 30),
               const SizedBox(height: 8),
               Text(
-                note['title']!,
+                note.title,
                 style: const TextStyle(
                   fontSize: 24,
                   color: Colors.white,
@@ -299,7 +312,7 @@ class _NotesMenuState extends State<NotesMenu> {
               ),
               const SizedBox(height: 4),
               Text(
-                note['subject']!,
+                note.subject,
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.white,

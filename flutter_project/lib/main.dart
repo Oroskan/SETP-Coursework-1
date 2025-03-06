@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'home.dart';
 import 'splash_screen.dart';
+import 'notes/note.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(NoteAdapter());
+  await Hive.openBox<Note>('notes');
+
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: SplashScreen(), 
+    home: SplashScreen(),
   ));
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -26,4 +33,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
- 
