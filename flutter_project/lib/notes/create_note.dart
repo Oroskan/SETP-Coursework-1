@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import 'note.dart';
 
 class CreateNotePage extends StatefulWidget {
   const CreateNotePage({super.key});
@@ -16,31 +17,30 @@ class CreateNotePageState extends State<CreateNotePage> {
 
   void _saveNote() {
     String title = _titleController.text.trim();
-    String subtitle = _subtitleController.text.trim();
+    String subject = _subtitleController.text.trim();
     String content = _contentController.text.trim();
 
-    if (title.isEmpty && subtitle.isEmpty && content.isEmpty) {
+    if (title.isEmpty && subject.isEmpty && content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Note cannot be empty')),
       );
       return;
     }
 
-    // Create a Map with non-null values
-    Map<String, String> noteData = {
-      'title': title.isEmpty ? 'Untitled' : title,
-      'subtitle': subtitle.isEmpty ? '' : subtitle,
-      'content': content.isEmpty ? '' : content,
-    };
+    Note note = Note(
+      title: title.isEmpty ? 'Untitled' : title,
+      subject: subject,
+      content: content,
+    );
 
-    Navigator.pop(context, noteData);
+    Navigator.pop(context, note);
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, [result]) async {
         if (didPop) return;
         Navigator.pop(context, null);
       },

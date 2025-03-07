@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../theme.dart';
+import 'note.dart';
 
 class NoteEditorPage extends StatefulWidget {
-  final String initialTitle;
-  final String initialSubject;
-  final String initialContent;
+  final Note note;
   final int noteIndex;
 
   const NoteEditorPage({
     super.key,
-    required this.initialTitle,
-    required this.initialSubject,
-    required this.initialContent,
+    required this.note,
     required this.noteIndex,
   });
 
@@ -26,13 +23,15 @@ class NoteEditorPageState extends State<NoteEditorPage> {
   late TextEditingController _contentController;
   bool _hasUnsavedChanges = false;
   bool darkMode = false;
+  late Note originalNote;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.initialTitle);
-    _subtitleController = TextEditingController(text: widget.initialSubject);
-    _contentController = TextEditingController(text: widget.initialContent);
+    originalNote = widget.note;
+    _titleController = TextEditingController(text: widget.note.title);
+    _subtitleController = TextEditingController(text: widget.note.subject);
+    _contentController = TextEditingController(text: widget.note.content);
 
     _titleController.addListener(_markAsUnsaved);
     _subtitleController.addListener(_markAsUnsaved);
@@ -55,12 +54,13 @@ class NoteEditorPageState extends State<NoteEditorPage> {
       return;
     }
 
-    Navigator.pop(context, {
-      'noteIndex': widget.noteIndex,
-      'title': title.isEmpty ? 'Untitled' : title,
-      'subject': subject,
-      'content': content,
-    });
+    Note updatedNote = originalNote.copyWith(
+      title: title.isEmpty ? 'Untitled' : title,
+      subject: subject,
+      content: content,
+    );
+
+    Navigator.pop(context, updatedNote);
   }
 
   void _shareNote() {
@@ -86,10 +86,10 @@ class NoteEditorPageState extends State<NoteEditorPage> {
       data: getTheme(darkMode),
       child: PopScope(
         canPop: !_hasUnsavedChanges,
-        onPopInvoked: (didPop) async {
+        onPopInvokedWithResult: (didPop, [result]) async {
           if (didPop) return;
 
-          final shouldPop = await showDialog<bool>(
+          await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
               title: const Text('Unsaved Changes'),
@@ -116,12 +116,6 @@ class NoteEditorPageState extends State<NoteEditorPage> {
               ],
             ),
           );
-
-          if (shouldPop ?? false) {
-            if (context.mounted) {
-              Navigator.of(context).pop();
-            }
-          }
         },
         child: Scaffold(
           backgroundColor: darkMode ? Colors.black87 : Colors.white,
