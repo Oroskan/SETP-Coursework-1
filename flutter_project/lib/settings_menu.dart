@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_screens/flutter_settings_screens.dart';
-
-
+import 'theme.dart';
 
 // Global notifier for theme mode.
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
@@ -23,8 +22,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Settings Menu',
           themeMode: mode,
-          theme: ThemeData.light(),
-          darkTheme: ThemeData.dark(),
+          theme: getTheme(false),
+          darkTheme: getTheme(true),
           home: const SettingsMenu(),
         );
       },
@@ -34,109 +33,142 @@ class MyApp extends StatelessWidget {
 
 class SettingsMenu extends StatefulWidget {
   const SettingsMenu({Key? key}) : super(key: key);
-  
+
   @override
   State<SettingsMenu> createState() => _ProfilePageState();
 }
+
 class _ProfilePageState extends State<SettingsMenu> {
   bool pushNotificationsEnabled = false;
   bool darkModeEnabled = false;
   String currentUsername = 'user123';
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white, // Customize as needed
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // If you have a main page to go back to, pop this route:
-            Navigator.pop(context);
-            // Or do something else like navigate to a new page:
-            // Navigator.push(context, MaterialPageRoute(builder: (_) => MainPage()));
-          },
-        ),
-        title: const Text('Profile Settings'),
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Dark purple
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Profile picture with name pill that displays the current username.
-            ProfilePictureName(name: currentUsername),
-            const SizedBox(height: 24),
-            
-            // Personal Information Group
-            SettingsGroup(
-              title: 'Personal information',
-              children: [
-                UsernameTile(
-                  currentUsername: currentUsername,
-                  onUsernameChanged: (newUsername) {
-                    setState(() {
-                      currentUsername = newUsername;
-                    });
-                  },
-                ),
-                const PasswordTile(),
-              ],
-            ),
-            const SizedBox(height: 24),
-            
-            // Preferences Group
-            SettingsGroup(
-              title: 'Preferences',
-              children: [
-                PushNotificationsTile(
-                  value: pushNotificationsEnabled,
-                  onChanged: (newVal) {
-                    setState(() => pushNotificationsEnabled = newVal);
-                  },
-                ),
-                DarkModeTile(
-                  value: darkModeEnabled,
-                  onChanged: (newVal) {
-                    setState(() => darkModeEnabled = newVal);
-                    themeNotifier.value =
-                        newVal ? ThemeMode.dark : ThemeMode.light;
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+  void initState() {
+    super.initState();
+    // Initialize the local state with the global state
+    darkModeEnabled = darkModeNotifier.value;
 
-            // Logout Button at the bottom
-            Align(
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEADDFF), // Light purple background
-                  foregroundColor: const Color(0xFF65558F), // Dark purple text
-                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+    // Listen for changes from other screens
+    darkModeNotifier.addListener(_updateDarkMode);
+  }
+
+  @override
+  void dispose() {
+    darkModeNotifier.removeListener(_updateDarkMode);
+    super.dispose();
+  }
+
+  void _updateDarkMode() {
+    if (mounted && darkModeEnabled != darkModeNotifier.value) {
+      setState(() {
+        darkModeEnabled = darkModeNotifier.value;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = getTheme(darkModeEnabled);
+
+    return Theme(
+      data: theme,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          title: const Text('Profile Settings'),
+        ),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // Profile picture with name pill that displays the current username.
+              ProfilePictureName(
+                name: currentUsername,
+                theme: theme,
+              ),
+              const SizedBox(height: 24),
+
+              // Personal Information Group
+              SettingsGroup(
+                title: 'Personal information',
+                children: [
+                  UsernameTile(
+                    currentUsername: currentUsername,
+                    onUsernameChanged: (newUsername) {
+                      setState(() {
+                        currentUsername = newUsername;
+                      });
+                    },
+                    theme: theme,
                   ),
-                ),
-                onPressed: () {
-                  // Handle logout logic here
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Logged out')),
-                  );
-                },
-                child: const Text(
-                  'Log out',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  PasswordTile(theme: theme),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Preferences Group
+              SettingsGroup(
+                title: 'Preferences',
+                children: [
+                  PushNotificationsTile(
+                    value: pushNotificationsEnabled,
+                    onChanged: (newVal) {
+                      setState(() => pushNotificationsEnabled = newVal);
+                    },
+                    theme: theme,
+                  ),
+                  DarkModeTile(
+                    value: darkModeEnabled,
+                    onChanged: (newVal) {
+                      setState(() => darkModeEnabled = newVal);
+                      themeNotifier.value =
+                          newVal ? ThemeMode.dark : ThemeMode.light;
+                    },
+                    theme: theme,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Logout Button at the bottom
+              Align(
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        theme.colorScheme.secondary.withOpacity(0.2),
+                    foregroundColor: theme.colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 48, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  onPressed: () {
+                    // Handle logout logic here
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Logged out')),
+                    );
+                  },
+                  child: const Text(
+                    'Log out',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 24),
-          ],
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
@@ -146,12 +178,14 @@ class _ProfilePageState extends State<SettingsMenu> {
 /// Profile picture with a name pill. The name is passed in via [name].
 class ProfilePictureName extends StatelessWidget {
   final String name;
-  
+  final ThemeData theme;
+
   const ProfilePictureName({
     Key? key,
     required this.name,
+    required this.theme,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -160,14 +194,14 @@ class ProfilePictureName extends StatelessWidget {
         Container(
           width: 120,
           height: 120,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0xFFEADDFF),
+            color: theme.colorScheme.secondary.withOpacity(0.2),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.person,
             size: 60,
-            color: Color(0xFF65558F),
+            color: theme.colorScheme.primary,
           ),
         ),
         const SizedBox(height: 16),
@@ -175,13 +209,13 @@ class ProfilePictureName extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFFEADDFF),
+            color: theme.colorScheme.secondary.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             name,
-            style: const TextStyle(
-              color: Color(0xFF65558F),
+            style: TextStyle(
+              color: theme.colorScheme.primary,
               fontSize: 16,
               fontWeight: FontWeight.w400,
             ),
@@ -196,13 +230,15 @@ class ProfilePictureName extends StatelessWidget {
 class UsernameTile extends StatelessWidget {
   final String currentUsername;
   final ValueChanged<String> onUsernameChanged;
-  
+  final ThemeData theme;
+
   const UsernameTile({
     Key? key,
     required this.currentUsername,
     required this.onUsernameChanged,
+    required this.theme,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return _PurpleRowItem(
@@ -215,14 +251,20 @@ class UsernameTile extends StatelessWidget {
           onUsernameChanged: onUsernameChanged,
         ),
       ),
+      theme: theme,
     );
   }
 }
 
 /// Password tile opens a change password dialog.
 class PasswordTile extends StatelessWidget {
-  const PasswordTile({Key? key}) : super(key: key);
-  
+  final ThemeData theme;
+
+  const PasswordTile({
+    Key? key,
+    required this.theme,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return _PurpleRowItem(
@@ -232,6 +274,7 @@ class PasswordTile extends StatelessWidget {
         context: context,
         builder: (context) => const _ChangePasswordDialog(),
       ),
+      theme: theme,
     );
   }
 }
@@ -240,19 +283,22 @@ class PasswordTile extends StatelessWidget {
 class PushNotificationsTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
-  
+  final ThemeData theme;
+
   const PushNotificationsTile({
     Key? key,
     required this.value,
     required this.onChanged,
+    required this.theme,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return _PurpleSwitchRow(
       label: 'Push Notifications',
       value: value,
       onChanged: onChanged,
+      theme: theme,
     );
   }
 }
@@ -261,19 +307,27 @@ class PushNotificationsTile extends StatelessWidget {
 class DarkModeTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
-  
+  final ThemeData theme;
+
   const DarkModeTile({
     Key? key,
     required this.value,
     required this.onChanged,
+    required this.theme,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return _PurpleSwitchRow(
       label: 'Dark Mode',
       value: value,
-      onChanged: onChanged,
+      onChanged: (newVal) {
+        onChanged(newVal);
+        // Update the global dark mode state
+        ThemeHelper.setDarkMode(newVal);
+        themeNotifier.value = newVal ? ThemeMode.dark : ThemeMode.light;
+      },
+      theme: theme,
     );
   }
 }
@@ -281,7 +335,7 @@ class DarkModeTile extends StatelessWidget {
 /// Dialog for changing the password.
 class _ChangePasswordDialog extends StatefulWidget {
   const _ChangePasswordDialog({Key? key}) : super(key: key);
-  
+
   @override
   State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
 }
@@ -289,7 +343,7 @@ class _ChangePasswordDialog extends StatefulWidget {
 class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   final _formKey = GlobalKey<FormState>();
   String _newPassword = '';
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -299,10 +353,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
         child: TextFormField(
           obscureText: true,
           decoration: const InputDecoration(labelText: 'New password'),
-          validator: (password) =>
-              (password != null && password.length >= 6)
-                  ? null
-                  : 'Password must be at least 6 characters',
+          validator: (password) => (password != null && password.length >= 6)
+              ? null
+              : 'Password must be at least 6 characters',
           onChanged: (value) => _newPassword = value,
         ),
       ),
@@ -329,13 +382,13 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
 class ChangeUsernameDialog extends StatefulWidget {
   final String currentUsername;
   final ValueChanged<String> onUsernameChanged;
-  
+
   const ChangeUsernameDialog({
     Key? key,
     required this.currentUsername,
     required this.onUsernameChanged,
   }) : super(key: key);
-  
+
   @override
   State<ChangeUsernameDialog> createState() => _ChangeUsernameDialogState();
 }
@@ -343,7 +396,7 @@ class ChangeUsernameDialog extends StatefulWidget {
 class _ChangeUsernameDialogState extends State<ChangeUsernameDialog> {
   final _formKey = GlobalKey<FormState>();
   String _newUsername = '';
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -389,27 +442,29 @@ class _ChangeUsernameDialogState extends State<ChangeUsernameDialog> {
   }
 }
 
-/// Helper widget: A purple row with title, subtitle, and an arrow.
+/// Helper widget: A themed row with title, subtitle, and an arrow.
 class _PurpleRowItem extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  
+  final ThemeData theme;
+
   const _PurpleRowItem({
     Key? key,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    required this.theme,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFEADDFF),
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.secondary.withOpacity(0.2),
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(15),
             topRight: Radius.circular(15),
           ),
@@ -424,8 +479,8 @@ class _PurpleRowItem extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.black,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -433,8 +488,8 @@ class _PurpleRowItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: Colors.black,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
                       fontSize: 17,
                       fontWeight: FontWeight.w400,
                     ),
@@ -442,9 +497,9 @@ class _PurpleRowItem extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
-              color: Color(0xFF65558F),
+              color: theme.colorScheme.primary,
               size: 18,
             ),
           ],
@@ -454,25 +509,27 @@ class _PurpleRowItem extends StatelessWidget {
   }
 }
 
-/// Helper widget: A purple row with a label and a switch.
+/// Helper widget: A themed row with a label and a switch.
 class _PurpleSwitchRow extends StatelessWidget {
   final String label;
   final bool value;
   final ValueChanged<bool> onChanged;
-  
+  final ThemeData theme;
+
   const _PurpleSwitchRow({
     Key? key,
     required this.label,
     required this.value,
     required this.onChanged,
+    required this.theme,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFEADDFF),
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondary.withOpacity(0.2),
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(15),
           topRight: Radius.circular(15),
         ),
@@ -484,15 +541,15 @@ class _PurpleSwitchRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.black,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
           Switch(
-            activeColor: const Color(0xFF65558F),
+            activeColor: theme.colorScheme.primary,
             value: value,
             onChanged: onChanged,
           ),
@@ -501,9 +558,3 @@ class _PurpleSwitchRow extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
