@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'settings_menu.dart';
-import 'quiz_menu.dart'; // Add this import
-import 'notes/notes_menu.dart'; // Add this import
-
+import 'quiz_menu.dart';
+import 'notes/notes_menu.dart';
 import 'quiz/question_page.dart';
 import 'quiz/quiz.dart';
+import 'theme.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,78 +15,57 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  bool darkMode = false;
   final String username = 'a';
 
   // Add variables for stats
   int streakDays = 7;
   int completedQuizzes = 12;
 
-  ThemeData _getTheme() {
-    final baseTheme = darkMode ? ThemeData.dark() : ThemeData.light();
-    final primaryColor = darkMode ? Colors.purple[200] : Colors.purple[300];
-    final backgroundColor = darkMode ? Colors.purple[800] : Colors.purple[50];
-
-    return baseTheme.copyWith(
-      primaryColor: primaryColor,
-      colorScheme:
-          (darkMode ? const ColorScheme.dark() : const ColorScheme.light())
-              .copyWith(
-        primary: primaryColor,
-        secondary: Colors.purple[200],
-      ),
-      appBarTheme: AppBarTheme(
-          backgroundColor: darkMode ? backgroundColor : primaryColor),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: backgroundColor,
-        indicatorColor: darkMode ? primaryColor : Colors.purple[100],
-      ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-      ),
-      cardTheme: CardTheme(color: backgroundColor),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: _getTheme(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('QuizApp'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsMenu()),
-                );
-              },
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildProfileSection(),
-                const SizedBox(height: 24),
-                _buildStatsSection(),
-                const SizedBox(height: 24),
-                _buildLeaderboardCard(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: darkModeNotifier,
+      builder: (context, isDarkMode, _) {
+        return Theme(
+          data: getTheme(isDarkMode),
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('QuizApp'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SettingsMenu()),
+                    );
+                  },
+                ),
               ],
             ),
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildProfileSection(),
+                    const SizedBox(height: 24),
+                    _buildStatsSection(),
+                    const SizedBox(height: 24),
+                    _buildLeaderboardCard(),
+                  ],
+                ),
+              ),
+            ),
+            floatingActionButton: _buildQuizButton(),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerDocked,
+            bottomNavigationBar: _buildNavigationBar(),
           ),
-        ),
-        floatingActionButton: _buildQuizButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: _buildNavigationBar(),
-      ),
+        );
+      },
     );
   }
 
@@ -196,102 +175,111 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildQuizButton() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 70),
-      height: 64,
-      child: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push<int>(
-            context,
-            MaterialPageRoute(
-              builder: (context) => QuizScreen(
-                completedQuizzes: completedQuizzes,
-                cardColor: _getTheme().cardTheme.color!,
-                backgroundColor: _getTheme().scaffoldBackgroundColor,
-                quiz: Quiz(questions: [
-                  MultipleChoice(
-                    question:
-                        'Which planet in our solar system has the most moons?',
-                    choices: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
-                    answer: 'Saturn',
+    return ValueListenableBuilder<bool>(
+      valueListenable: darkModeNotifier,
+      builder: (context, isDarkMode, _) {
+        final theme = getTheme(isDarkMode);
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 70),
+          height: 64,
+          child: FloatingActionButton.extended(
+            onPressed: () async {
+              final result = await Navigator.push<int>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => QuizScreen(
+                    completedQuizzes: completedQuizzes,
+                    cardColor: theme.cardTheme.color!,
+                    backgroundColor: theme.scaffoldBackgroundColor,
+                    quiz: Quiz(questions: [
+                      MultipleChoice(
+                        question:
+                            'Which planet in our solar system has the most moons?',
+                        choices: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
+                        answer: 'Saturn',
+                      ),
+                      MultipleChoice(
+                        question: 'What is the rarest blood type in humans?',
+                        choices: ['O+', 'A-', 'B+', 'AB-'],
+                        answer: 'AB-',
+                      ),
+                      MultipleChoice(
+                        question:
+                            'Which element has the highest melting point?',
+                        choices: ['Iron', 'Tungsten', 'Gold', 'Platinum'],
+                        answer: 'Tungsten',
+                      ),
+                      MultipleChoice(
+                        question:
+                            'Who developed the theory of general relativity?',
+                        choices: [
+                          'Isaac Newton',
+                          'Albert Einstein',
+                          'Nikola Tesla',
+                          'Galileo Galilei'
+                        ],
+                        answer: 'Albert Einstein',
+                      ),
+                      MultipleChoice(
+                        question:
+                            'What is the only mammal capable of sustained flight?',
+                        choices: [
+                          'Bat',
+                          'Flying Squirrel',
+                          'Eagle',
+                          'Sugar Glider'
+                        ],
+                        answer: 'Bat',
+                      ),
+                      MultipleChoice(
+                        question:
+                            'Which country has won the most FIFA World Cup titles?',
+                        choices: ['Germany', 'Argentina', 'Brazil', 'France'],
+                        answer: 'Brazil',
+                      ),
+                      MultipleChoice(
+                        question: 'What is the longest river in the world?',
+                        choices: [
+                          'Amazon River',
+                          'Yangtze River',
+                          'Mississippi River',
+                          'Nile River'
+                        ],
+                        answer: 'Nile River',
+                      ),
+                      MultipleChoice(
+                        question: 'What is the smallest unit of matter?',
+                        choices: ['Molecule', 'Atom', 'Proton', 'Quark'],
+                        answer: 'Quark',
+                      ),
+                      MultipleChoice(
+                        question:
+                            'Which programming language is known as the "language of the web"?',
+                        choices: ['Python', 'C++', 'JavaScript', 'Java'],
+                        answer: 'JavaScript',
+                      ),
+                      MultipleChoice(
+                        question:
+                            'What is the main ingredient in traditional Japanese miso soup?',
+                        choices: ['Tofu', 'Soybeans', 'Seaweed', 'Rice'],
+                        answer: 'Soybeans',
+                      ),
+                    ]),
                   ),
-                  MultipleChoice(
-                    question: 'What is the rarest blood type in humans?',
-                    choices: ['O+', 'A-', 'B+', 'AB-'],
-                    answer: 'AB-',
-                  ),
-                  MultipleChoice(
-                    question: 'Which element has the highest melting point?',
-                    choices: ['Iron', 'Tungsten', 'Gold', 'Platinum'],
-                    answer: 'Tungsten',
-                  ),
-                  MultipleChoice(
-                    question: 'Who developed the theory of general relativity?',
-                    choices: [
-                      'Isaac Newton',
-                      'Albert Einstein',
-                      'Nikola Tesla',
-                      'Galileo Galilei'
-                    ],
-                    answer: 'Albert Einstein',
-                  ),
-                  MultipleChoice(
-                    question:
-                        'What is the only mammal capable of sustained flight?',
-                    choices: [
-                      'Bat',
-                      'Flying Squirrel',
-                      'Eagle',
-                      'Sugar Glider'
-                    ],
-                    answer: 'Bat',
-                  ),
-                  MultipleChoice(
-                    question:
-                        'Which country has won the most FIFA World Cup titles?',
-                    choices: ['Germany', 'Argentina', 'Brazil', 'France'],
-                    answer: 'Brazil',
-                  ),
-                  MultipleChoice(
-                    question: 'What is the longest river in the world?',
-                    choices: [
-                      'Amazon River',
-                      'Yangtze River',
-                      'Mississippi River',
-                      'Nile River'
-                    ],
-                    answer: 'Nile River',
-                  ),
-                  MultipleChoice(
-                    question: 'What is the smallest unit of matter?',
-                    choices: ['Molecule', 'Atom', 'Proton', 'Quark'],
-                    answer: 'Quark',
-                  ),
-                  MultipleChoice(
-                    question:
-                        'Which programming language is known as the "language of the web"?',
-                    choices: ['Python', 'C++', 'JavaScript', 'Java'],
-                    answer: 'JavaScript',
-                  ),
-                  MultipleChoice(
-                    question:
-                        'What is the main ingredient in traditional Japanese miso soup?',
-                    choices: ['Tofu', 'Soybeans', 'Seaweed', 'Rice'],
-                    answer: 'Soybeans',
-                  ),
-                ]),
-              ),
-            ),
-          );
-          if (result != null) {
-            setState(() {
-              completedQuizzes = result; // Update the state with the result
-            });
-          }
-        },
-        label: const Text('Take Quiz', style: TextStyle(fontSize: 18)),
-        icon: const Icon(Icons.play_arrow, size: 28),
-      ),
+                ),
+              );
+              if (result != null) {
+                setState(() {
+                  completedQuizzes = result; // Update the state with the result
+                });
+              }
+            },
+            label: const Text('Take Quiz', style: TextStyle(fontSize: 18)),
+            icon: const Icon(Icons.play_arrow, size: 28),
+          ),
+        );
+      },
     );
   }
 
