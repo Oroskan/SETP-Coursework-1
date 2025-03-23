@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_settings_screens/flutter_settings_screens.dart';
+
+// Settings key for dark mode
+const String keyDarkMode = 'key-dark-mode';
 
 // Global theme state manager
 final ValueNotifier<bool> darkModeNotifier = ValueNotifier<bool>(false);
@@ -66,9 +70,11 @@ class ThemeHelper {
 
   static void setDarkMode(bool value) {
     darkModeNotifier.value = value;
+    // Save to persistent storage
+    Settings.setValue<bool>(keyDarkMode, value);
   }
 
   static void toggleDarkMode() {
-    darkModeNotifier.value = !darkModeNotifier.value;
+    setDarkMode(!darkModeNotifier.value);
   }
 }
