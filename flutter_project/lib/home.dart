@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'settings_menu.dart';
-import 'quiz_menu.dart';
+import 'quiz/quiz_menu.dart';
 import 'notes/notes_menu.dart';
 import 'quiz/question_page.dart';
 import 'quiz/quiz.dart';

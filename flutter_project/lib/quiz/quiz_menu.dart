@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'home.dart';
-import 'notes/notes_menu.dart';
-import 'theme.dart';
-import 'settings_menu.dart';
+import '../home.dart';
+import '../notes/notes_menu.dart';
+import '../theme.dart';
+import '../settings_menu.dart';
 
 class QuizMenu extends StatefulWidget {
   const QuizMenu({super.key});
