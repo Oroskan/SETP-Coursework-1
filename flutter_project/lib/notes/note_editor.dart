@@ -126,15 +126,13 @@ class NoteEditorPageState extends State<NoteEditorPage> {
                   title: const Text('Edit Note'),
                   actions: [
                     IconButton(
-                      icon:
-                          Icon(Icons.share, color: theme.colorScheme.onPrimary),
+                      icon:const Icon(Icons.share),
                       onPressed: _shareNote,
                     ),
-                    TextButton(
-                      onPressed: _saveNote,
-                      child: Text('Save',
-                          style: TextStyle(color: theme.colorScheme.onPrimary)),
-                    ),
+                    IconButton(
+                    icon: const Icon(Icons.save),
+                    onPressed: _saveNote,
+                    )
                   ],
                 ),
                 body: SingleChildScrollView(
