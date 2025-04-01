@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../home.dart';
 import '../notes/notes_menu.dart';
 import '../theme.dart';
 import '../settings_menu.dart';
+import 'quiz.dart';
+import 'create_quiz.dart';
+import 'quiz_editor.dart';
 
 class QuizMenu extends StatefulWidget {
   const QuizMenu({super.key});
@@ -15,20 +19,70 @@ class _QuizMenuState extends State<QuizMenu> {
   final int _selectedIndex = 1;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  late Box<Quiz> quizzesBox;
 
-  final List<Map<String, String>> quizzes = [
-    {'title': 'Chemical Bonding Quiz', 'subject': 'Chemistry'},
-    {'title': 'Forces and Motion', 'subject': 'Physics'},
-    {'title': 'DNA and RNA', 'subject': 'Biology'},
-    {'title': 'Algorithm Analysis', 'subject': 'Computer Science'},
-    {'title': 'Integration Methods', 'subject': 'Mathematics'},
-    {'title': 'Literature Analysis', 'subject': 'English'},
-    {'title': 'World War II', 'subject': 'History'},
-    {'title': 'Tectonic Plates', 'subject': 'Geography'},
-    {'title': 'Supply and Demand', 'subject': 'Economics'},
-    {'title': 'Cognitive Development', 'subject': 'Psychology'},
-    {'title': 'Cultural Studies', 'subject': 'Sociology'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    quizzesBox = Hive.box<Quiz>('quizzes');
+
+    if (quizzesBox.isEmpty) {
+      _populateSampleQuizzes();
+    }
+  }
+
+  void _populateSampleQuizzes() {
+    final sampleQuizzes = [
+      Quiz(
+        title: 'Chemical Bonding Quiz',
+        questions: [],
+      )..title = 'Chemical Bonding Quiz',
+      Quiz(
+        title: 'Forces and Motion',
+        questions: [],
+      )..title = 'Forces and Motion',
+      Quiz(
+        title: 'DNA and RNA',
+        questions: [],
+      )..title = 'DNA and RNA',
+      Quiz(
+        title: 'Algorithm Analysis',
+        questions: [],
+      )..title = 'Algorithm Analysis',
+      Quiz(
+        title: 'Integration Methods',
+        questions: [],
+      )..title = 'Integration Methods',
+      Quiz(
+        title: 'Literature Analysis',
+        questions: [],
+      )..title = 'Literature Analysis',
+      Quiz(
+        title: 'World War II',
+        questions: [],
+      )..title = 'World War II',
+      Quiz(
+        title: 'Tectonic Plates',
+        questions: [],
+      )..title = 'Tectonic Plates',
+      Quiz(
+        title: 'Supply and Demand',
+        questions: [],
+      )..title = 'Supply and Demand',
+      Quiz(
+        title: 'Cognitive Development',
+        questions: [],
+      )..title = 'Cognitive Development',
+      Quiz(
+        title: 'Cultural Studies',
+        questions: [],
+      )..title = 'Cultural Studies',
+    ];
+
+    for (var quiz in sampleQuizzes) {
+      quizzesBox.add(quiz);
+    }
+  }
 
   @override
   void dispose() {
@@ -36,41 +90,54 @@ class _QuizMenuState extends State<QuizMenu> {
     super.dispose();
   }
 
-  List<Map<String, String>> get filteredQuizzes {
-    if (_searchQuery.isEmpty) return quizzes;
-    return quizzes.where((quiz) {
-      final title = quiz['title']!.toLowerCase();
-      final subject = quiz['subject']!.toLowerCase();
+  List<Quiz> get filteredQuizzes {
+    if (_searchQuery.isEmpty) {
+      return quizzesBox.values.toList();
+    }
+    return quizzesBox.values.where((quiz) {
+      final title = quiz.title.toLowerCase();
       final query = _searchQuery.toLowerCase();
-      return title.contains(query) || subject.contains(query);
+      return title.contains(query);
     }).toList();
+  }
+
+  void _addNewQuiz() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateQuizPage()),
+    );
+
+    if (result != null && result is Quiz) {
+      setState(() {
+        quizzesBox.add(result);
+      });
+    }
   }
 
   void _deleteQuiz(int index) {
     setState(() {
-      quizzes.removeAt(index);
+      final quiz = filteredQuizzes[index];
+      quiz.delete();
     });
   }
 
   Future<bool> _confirmDelete() async {
     return await showDialog(
           context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Delete Quiz'),
-              content: const Text('Are you sure you want to delete this quiz?'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            );
-          },
+          builder: (BuildContext context) => AlertDialog(
+            title: const Text('Delete Quiz'),
+            content: const Text('Are you sure you want to delete this quiz?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
         ) ??
         false;
   }
@@ -175,10 +242,11 @@ class _QuizMenuState extends State<QuizMenu> {
                               )
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                children: filteredQuizzes
-                                    .map(
-                                        (quiz) => _buildQuizButton(quiz, theme))
-                                    .toList(),
+                                children: List.generate(
+                                  filteredQuizzes.length,
+                                  (index) => _buildQuizButton(
+                                      filteredQuizzes[index], index, theme),
+                                ),
                               ),
                       ),
                     ),
@@ -217,10 +285,9 @@ class _QuizMenuState extends State<QuizMenu> {
         });
   }
 
-  Widget _buildQuizButton(Map<String, String> quiz, ThemeData theme) {
-    final index = quizzes.indexOf(quiz);
+  Widget _buildQuizButton(Quiz quiz, int index, ThemeData theme) {
     return Dismissible(
-      key: Key(quiz['title']!),
+      key: Key(quiz.key.toString()),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) => _confirmDelete(),
       onDismissed: (_) => _deleteQuiz(index),
@@ -245,16 +312,32 @@ class _QuizMenuState extends State<QuizMenu> {
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
-          onPressed: () {
-            Navigator.pushNamed(context,
-                '/quiz/${quiz['subject']?.toLowerCase().replaceAll(' ', '_')}/${quiz['title']?.toLowerCase().replaceAll(' ', '_')}');
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => QuizEditorPage(
+                  quiz: quiz,
+                  quizIndex: index,
+                ),
+              ),
+            );
+            if (result != null && result is Quiz) {
+              setState(() {
+                // Update the quiz in the box
+                final boxIndex = quizzesBox.values.toList().indexOf(quiz);
+                if (boxIndex >= 0) {
+                  quizzesBox.putAt(boxIndex, result);
+                }
+              });
+            }
           },
           child: Column(
             children: [
               Icon(Icons.quiz, color: theme.colorScheme.onPrimary, size: 30),
               const SizedBox(height: 8),
               Text(
-                quiz['title']!,
+                quiz.title,
                 style: TextStyle(
                   fontSize: 24,
                   color: theme.colorScheme.onPrimary,
@@ -262,7 +345,7 @@ class _QuizMenuState extends State<QuizMenu> {
               ),
               const SizedBox(height: 4),
               Text(
-                quiz['subject']!,
+                '${quiz.questions.length} questions',
                 style: TextStyle(
                   fontSize: 12,
                   color: theme.colorScheme.onPrimary,
@@ -283,7 +366,7 @@ class _QuizMenuState extends State<QuizMenu> {
         height: 64,
         width: 64,
         child: FloatingActionButton(
-          onPressed: () {/* TODO: Implement create quiz page */},
+          onPressed: _addNewQuiz,
           child: const Text('+', style: TextStyle(fontSize: 18)),
         ),
       ),

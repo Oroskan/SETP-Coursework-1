@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'settings_menu.dart';
 import 'quiz/quiz_menu.dart';
 import 'notes/notes_menu.dart';
-import 'quiz/question_page.dart';
-import 'quiz/quiz.dart';
 import 'theme.dart';
 
 class HomePage extends StatefulWidget {
@@ -178,102 +176,17 @@ class _HomePageState extends State<HomePage> {
     return ValueListenableBuilder<bool>(
       valueListenable: darkModeNotifier,
       builder: (context, isDarkMode, _) {
-        final theme = getTheme(isDarkMode);
+        getTheme(isDarkMode);
 
         return Container(
           margin: const EdgeInsets.only(bottom: 70),
           height: 64,
           child: FloatingActionButton.extended(
-            onPressed: () async {
-              final result = await Navigator.push<int>(
+            onPressed: () {
+              Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => QuizScreen(
-                    completedQuizzes: completedQuizzes,
-                    cardColor: theme.cardTheme.color!,
-                    backgroundColor: theme.scaffoldBackgroundColor,
-                    quiz: Quiz(questions: [
-                      MultipleChoice(
-                        question:
-                            'Which planet in our solar system has the most moons?',
-                        choices: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
-                        answer: 'Saturn',
-                      ),
-                      MultipleChoice(
-                        question: 'What is the rarest blood type in humans?',
-                        choices: ['O+', 'A-', 'B+', 'AB-'],
-                        answer: 'AB-',
-                      ),
-                      MultipleChoice(
-                        question:
-                            'Which element has the highest melting point?',
-                        choices: ['Iron', 'Tungsten', 'Gold', 'Platinum'],
-                        answer: 'Tungsten',
-                      ),
-                      MultipleChoice(
-                        question:
-                            'Who developed the theory of general relativity?',
-                        choices: [
-                          'Isaac Newton',
-                          'Albert Einstein',
-                          'Nikola Tesla',
-                          'Galileo Galilei'
-                        ],
-                        answer: 'Albert Einstein',
-                      ),
-                      MultipleChoice(
-                        question:
-                            'What is the only mammal capable of sustained flight?',
-                        choices: [
-                          'Bat',
-                          'Flying Squirrel',
-                          'Eagle',
-                          'Sugar Glider'
-                        ],
-                        answer: 'Bat',
-                      ),
-                      MultipleChoice(
-                        question:
-                            'Which country has won the most FIFA World Cup titles?',
-                        choices: ['Germany', 'Argentina', 'Brazil', 'France'],
-                        answer: 'Brazil',
-                      ),
-                      MultipleChoice(
-                        question: 'What is the longest river in the world?',
-                        choices: [
-                          'Amazon River',
-                          'Yangtze River',
-                          'Mississippi River',
-                          'Nile River'
-                        ],
-                        answer: 'Nile River',
-                      ),
-                      MultipleChoice(
-                        question: 'What is the smallest unit of matter?',
-                        choices: ['Molecule', 'Atom', 'Proton', 'Quark'],
-                        answer: 'Quark',
-                      ),
-                      MultipleChoice(
-                        question:
-                            'Which programming language is known as the "language of the web"?',
-                        choices: ['Python', 'C++', 'JavaScript', 'Java'],
-                        answer: 'JavaScript',
-                      ),
-                      MultipleChoice(
-                        question:
-                            'What is the main ingredient in traditional Japanese miso soup?',
-                        choices: ['Tofu', 'Soybeans', 'Seaweed', 'Rice'],
-                        answer: 'Soybeans',
-                      ),
-                    ]),
-                  ),
-                ),
+                MaterialPageRoute(builder: (context) => const QuizMenu()),
               );
-              if (result != null) {
-                setState(() {
-                  completedQuizzes = result; // Update the state with the result
-                });
-              }
             },
             label: const Text('Take Quiz', style: TextStyle(fontSize: 18)),
             icon: const Icon(Icons.play_arrow, size: 28),

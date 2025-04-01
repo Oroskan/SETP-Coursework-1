@@ -4,39 +4,42 @@ import 'summary_page.dart';
 
 bool answered = false;
 
-///will find a work around for this x2
-
 class QuizScreen extends StatefulWidget {
-  bool answered = false;
-
   final Color cardColor;
   final Color backgroundColor;
-  final completedQuizzes;
+  final int completedQuizzes;
   final Quiz quiz;
 
-  QuizScreen(
-      {required this.backgroundColor,
-      required this.cardColor,
-      required this.completedQuizzes,
-      required this.quiz});
+  const QuizScreen({
+    super.key,
+    required this.backgroundColor,
+    required this.cardColor,
+    required this.completedQuizzes,
+    required this.quiz,
+  });
 
   @override
-  _QuizScreenState createState() => _QuizScreenState();
+  QuizScreenState createState() => QuizScreenState();
 }
 
-class _QuizScreenState extends State<QuizScreen> {
+class QuizScreenState extends State<QuizScreen> {
   int correctCount = 0;
   int incorrectCount = 0;
   int startTime = (DateTime.now().millisecondsSinceEpoch / 1000).toInt();
 
   int currentQuestionIndex = 0;
+  bool answered = false;
+  String? userAnswer;
+  final textController = TextEditingController();
 
   void skipQuestion() {
     setState(() {
-      if (answered == false) {
+      if (!answered) {
         incorrectCount++;
       }
       answered = false;
+      userAnswer = null;
+      textController.clear();
 
       if (currentQuestionIndex < widget.quiz.questions.length - 1) {
         currentQuestionIndex++;
@@ -60,22 +63,61 @@ class _QuizScreenState extends State<QuizScreen> {
     });
   }
 
-  void answerQuestion(int index) {
-    MultipleChoice currentQuestion =
-        widget.quiz.questions[currentQuestionIndex];
-    print(correctCount);
+  void answerMultipleChoice(int index) {
+    if (answered) return;
 
-    if (currentQuestion.choices[index] == currentQuestion.answer) {
-      correctCount++;
-    } else {
-      incorrectCount++;
-    }
+    setState(() {
+      MultipleChoice currentQuestion =
+          widget.quiz.questions[currentQuestionIndex] as MultipleChoice;
+      answered = true;
+
+      if (currentQuestion.choices[index] == currentQuestion.answer) {
+        correctCount++;
+      } else {
+        incorrectCount++;
+      }
+    });
+  }
+
+  void answerQuestionAnswer() {
+    if (answered) return;
+
+    setState(() {
+      QuestionAnswer currentQuestion =
+          widget.quiz.questions[currentQuestionIndex] as QuestionAnswer;
+      answered = true;
+      userAnswer = textController.text;
+
+      if (textController.text.trim().toLowerCase() ==
+          currentQuestion.answer.toLowerCase()) {
+        correctCount++;
+      } else {
+        incorrectCount++;
+      }
+    });
+  }
+
+  void answerFillInTheBlank() {
+    if (answered) return;
+
+    setState(() {
+      FillInTheBlank currentQuestion =
+          widget.quiz.questions[currentQuestionIndex] as FillInTheBlank;
+      answered = true;
+      userAnswer = textController.text;
+
+      if (textController.text.trim().toLowerCase() ==
+          currentQuestion.answer.toLowerCase()) {
+        correctCount++;
+      } else {
+        incorrectCount++;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    MultipleChoice currentQuestion =
-        widget.quiz.questions[currentQuestionIndex];
+    Question currentQuestion = widget.quiz.questions[currentQuestionIndex];
 
     return Scaffold(
       backgroundColor: widget.backgroundColor,
@@ -89,7 +131,7 @@ class _QuizScreenState extends State<QuizScreen> {
               Navigator.pop(context, widget.completedQuizzes);
             }
           },
-          icon: Icon(Icons.close),
+          icon: const Icon(Icons.close),
         ),
         title: SizedBox(
           height: 20,
@@ -103,17 +145,18 @@ class _QuizScreenState extends State<QuizScreen> {
         children: [
           Column(
             children: <Widget>[
-              Divider(
-                color: const Color.fromARGB(255, 0, 0, 0),
+              const Divider(
+                color: Color.fromARGB(255, 0, 0, 0),
                 thickness: 2,
                 indent: 30,
                 endIndent: 30,
               ),
               Aligned(
+                amount: 30,
                 child: Text(
                   currentQuestion.question,
                   textAlign: TextAlign.left,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
@@ -121,35 +164,27 @@ class _QuizScreenState extends State<QuizScreen> {
                     fontFamily: 'Raleway',
                   ),
                 ),
-                amount: 30,
               ),
-              SizedBox(height: 30),
-              for (int i = 0; i < currentQuestion.choices.length; i++)
-                Aligned(
-                  child: CustomTextDisplayBox(
-                    color: widget.cardColor,
-                    key: ValueKey(currentQuestionIndex),
-                    text: currentQuestion.choices[i],
-                    hotkey: '${i + 1}',
-                    onTap: () {
-                      answerQuestion(i);
+              const SizedBox(height: 30),
 
-                      //currently no verification of answering?
-                    },
-                    isCorrect:
-                        currentQuestion.choices[i] == currentQuestion.answer,
-                  ),
-                  amount: 30,
-                ),
-              SizedBox(height: 30),
+              // Different question types require different UI
+              if (currentQuestion is MultipleChoice)
+                _buildMultipleChoiceQuestion(currentQuestion)
+              else if (currentQuestion is QuestionAnswer)
+                _buildQuestionAnswerQuestion(currentQuestion)
+              else if (currentQuestion is FillInTheBlank)
+                _buildFillInTheBlankQuestion(currentQuestion),
+
+              const SizedBox(height: 30),
+
               Aligned(
+                amount: 150.0,
                 child: CustomTextDisplayBox(
                   color: widget.cardColor,
-                  key: ValueKey(-1), // Keep this key static
-                  text: 'Continue',
+                  key: const ValueKey(-1),
+                  text: answered ? 'Continue' : 'Skip',
                   onTap: skipQuestion,
                 ),
-                amount: 150.0,
               ),
             ],
           ),
@@ -157,13 +192,151 @@ class _QuizScreenState extends State<QuizScreen> {
       ),
     );
   }
+
+  Widget _buildMultipleChoiceQuestion(MultipleChoice question) {
+    return Column(
+      children: [
+        for (int i = 0; i < question.choices.length; i++)
+          Aligned(
+            amount: 30,
+            child: CustomTextDisplayBox(
+              color: widget.cardColor,
+              key: ValueKey('$currentQuestionIndex-$i'),
+              text: question.choices[i],
+              hotkey: '${i + 1}',
+              onTap: () => answerMultipleChoice(i),
+              isCorrect:
+                  answered ? question.choices[i] == question.answer : null,
+              isSelected: false,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildQuestionAnswerQuestion(QuestionAnswer question) {
+    return Aligned(
+      amount: 30,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: TextField(
+              controller: textController,
+              enabled: !answered,
+              decoration: InputDecoration(
+                hintText: 'Type your answer here',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                filled: true,
+                fillColor: widget.cardColor,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: answered ? null : answerQuestionAnswer,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+            ),
+            child: const Text('Submit Answer'),
+          ),
+          if (answered)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Text(
+                userAnswer == question.answer
+                    ? 'Correct! The answer is: ${question.answer}'
+                    : 'Incorrect. The correct answer is: ${question.answer}',
+                style: TextStyle(
+                  color:
+                      userAnswer == question.answer ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFillInTheBlankQuestion(FillInTheBlank question) {
+    return Aligned(
+      amount: 30,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (question.hint.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                'Hint: ${question.hint}',
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: TextField(
+              controller: textController,
+              enabled: !answered,
+              decoration: InputDecoration(
+                hintText: 'Fill in the blank',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                filled: true,
+                fillColor: widget.cardColor,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: answered ? null : answerFillInTheBlank,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: widget.cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+            ),
+            child: const Text('Submit Answer'),
+          ),
+          if (answered)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Text(
+                userAnswer == question.answer
+                    ? 'Correct! The answer is: ${question.answer}'
+                    : 'Incorrect. The correct answer is: ${question.answer}',
+                style: TextStyle(
+                  color:
+                      userAnswer == question.answer ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
+  }
 }
 
 class Aligned extends StatelessWidget {
   final Widget child;
   final double amount;
 
-  Aligned({required this.child, required this.amount});
+  const Aligned({super.key, required this.child, required this.amount});
 
   @override
   Widget build(BuildContext context) {
@@ -181,31 +354,32 @@ class CustomTextDisplayBox extends StatefulWidget {
   final String text;
   final String? hotkey;
   final bool? isCorrect;
+  final bool? isSelected;
   final VoidCallback onTap;
   final Color color;
 
-  CustomTextDisplayBox({
+  const CustomTextDisplayBox({
     required Key key,
     required this.text,
     this.hotkey,
     this.isCorrect,
+    this.isSelected,
     required this.onTap,
     required this.color,
   }) : super(key: key);
 
   @override
-  _CustomTextDisplayBoxState createState() => _CustomTextDisplayBoxState();
+  CustomTextDisplayBoxState createState() => CustomTextDisplayBoxState();
 }
 
-class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
+class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
   late Color _boxColor;
 
+  @override
   void initState() {
     super.initState();
     _boxColor = widget.color;
   }
-
-  bool _answered = false; // Keep track of whether the user has answered
 
   void _handleTap() {
     if (!answered && widget.isCorrect != null) {
@@ -220,6 +394,16 @@ class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
 
   @override
   Widget build(BuildContext context) {
+    // Update color based on correct/incorrect status
+    if (widget.isCorrect != null) {
+      _boxColor =
+          widget.isCorrect! ? Colors.green.shade200 : Colors.red.shade200;
+    } else if (widget.isSelected == true) {
+      _boxColor = Colors.blue.shade200;
+    } else {
+      _boxColor = widget.color;
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -228,12 +412,12 @@ class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
         highlightColor: Colors.blue.withOpacity(0.3),
         borderRadius: BorderRadius.circular(15.0),
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           decoration: BoxDecoration(
             color: _boxColor,
             borderRadius: BorderRadius.circular(15.0),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
                 blurRadius: 10.0,
@@ -250,7 +434,7 @@ class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
                   splashColor: Colors.blue.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(4.0),
                   child: Container(
-                    padding: EdgeInsets.all(6.0),
+                    padding: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(4.0),
@@ -258,16 +442,17 @@ class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
                     ),
                     child: Text(
                       widget.hotkey!,
-                      style: TextStyle(fontSize: 12.0, color: Colors.black),
+                      style:
+                          const TextStyle(fontSize: 12.0, color: Colors.black),
                     ),
                   ),
                 ),
-                SizedBox(width: 12.0),
+                const SizedBox(width: 12.0),
               ],
               Expanded(
                 child: Text(
                   widget.text,
-                  style: TextStyle(fontSize: 18.0, color: Colors.black),
+                  style: const TextStyle(fontSize: 18.0, color: Colors.black),
                 ),
               ),
             ],
@@ -281,7 +466,7 @@ class _CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
 class CurvedProgressBar extends StatelessWidget {
   final double percentage;
 
-  CurvedProgressBar({required this.percentage});
+  const CurvedProgressBar({super.key, required this.percentage});
 
   @override
   Widget build(BuildContext context) {
