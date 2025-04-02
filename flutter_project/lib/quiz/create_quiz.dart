@@ -44,15 +44,11 @@ class _CreateQuizPageState extends State<CreateQuizPage> {
                       controller: _titleController,
                       decoration: const InputDecoration(
                         labelText: 'Quiz Title',
-                        border: OutlineInputBorder(),
                       ),
                       maxLength: 50,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      ),
                       onPressed: () {
                         if (_titleController.text.trim().isNotEmpty) {
                           // Create a new quiz with no questions yet
@@ -63,8 +59,9 @@ class _CreateQuizPageState extends State<CreateQuizPage> {
                           Navigator.pop(context, quiz);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter a quiz title'),
+                            SnackBar(
+                              content: const Text('Please enter a quiz title'),
+                              backgroundColor: theme.colorScheme.error,
                             ),
                           );
                         }

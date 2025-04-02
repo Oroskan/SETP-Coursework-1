@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'quiz.dart';
+import '../theme.dart';
 
 class QuestionEditorPage extends StatefulWidget {
   final Question? question;
@@ -125,14 +126,20 @@ class _QuestionEditorPageState extends State<QuestionEditorPage> {
   void _saveQuestion() {
     if (_questionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Question text cannot be empty')),
+        SnackBar(
+          content: const Text('Question text cannot be empty'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
       return;
     }
 
     if (_answerController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Answer cannot be empty')),
+        SnackBar(
+          content: const Text('Answer cannot be empty'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
       return;
     }
@@ -146,8 +153,10 @@ class _QuestionEditorPageState extends State<QuestionEditorPage> {
 
       if (nonEmptyChoices.length < 2) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Multiple choice questions need at least 2 options'),
+          SnackBar(
+            content:
+                const Text('Multiple choice questions need at least 2 options'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         return;
@@ -156,8 +165,10 @@ class _QuestionEditorPageState extends State<QuestionEditorPage> {
       // Check if the answer is among the choices
       if (!nonEmptyChoices.contains(_answerController.text.trim())) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('The answer must be one of the provided choices'),
+          SnackBar(
+            content:
+                const Text('The answer must be one of the provided choices'),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         return;
@@ -170,143 +181,151 @@ class _QuestionEditorPageState extends State<QuestionEditorPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.question == null ? 'Add Question' : 'Edit Question'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _saveQuestion,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Question text field
-            TextField(
-              controller: _questionController,
-              decoration: const InputDecoration(
-                labelText: 'Question',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
+    return ValueListenableBuilder<bool>(
+        valueListenable: darkModeNotifier,
+        builder: (context, isDarkMode, _) {
+          final theme = getTheme(isDarkMode);
 
-            // Question type dropdown
-            DropdownButtonFormField<String>(
-              value: _selectedType,
-              decoration: const InputDecoration(
-                labelText: 'Question Type',
-                border: OutlineInputBorder(),
+          return Theme(
+            data: theme,
+            child: Scaffold(
+              appBar: AppBar(
+                title: Text(
+                    widget.question == null ? 'Add Question' : 'Edit Question'),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.check),
+                    onPressed: _saveQuestion,
+                  ),
+                ],
               ),
-              items: _questionTypes.map((String type) {
-                return DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(type == 'multiple_choice'
-                      ? 'Multiple Choice'
-                      : type == 'question_answer'
-                          ? 'Question & Answer'
-                          : 'Fill in the Blank'),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedType = newValue!;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Question text field
+                    TextField(
+                      controller: _questionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Question',
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
 
-            // Type-specific fields
-            if (_selectedType == 'multiple_choice') ...[
-              const Text(
-                'Answer Choices',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
+                    // Question type dropdown
+                    DropdownButtonFormField<String>(
+                      value: _selectedType,
+                      decoration: const InputDecoration(
+                        labelText: 'Question Type',
+                      ),
+                      items: _questionTypes.map((String type) {
+                        return DropdownMenuItem<String>(
+                          value: type,
+                          child: Text(type == 'multiple_choice'
+                              ? 'Multiple Choice'
+                              : type == 'question_answer'
+                                  ? 'Question & Answer'
+                                  : 'Fill in the Blank'),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedType = newValue!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
 
-              // Choices list
-              ...List.generate(_choiceControllers.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _choiceControllers[index],
-                          decoration: InputDecoration(
-                            labelText: 'Choice ${index + 1}',
-                            border: const OutlineInputBorder(),
-                          ),
+                    // Type-specific fields
+                    if (_selectedType == 'multiple_choice') ...[
+                      Text(
+                        'Answer Choices',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: _choiceControllers.length > 2
-                            ? () => _removeChoice(index)
-                            : null,
+                      const SizedBox(height: 8),
+
+                      // Choices list
+                      ...List.generate(_choiceControllers.length, (index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _choiceControllers[index],
+                                  decoration: InputDecoration(
+                                    labelText: 'Choice ${index + 1}',
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: theme.colorScheme.error,
+                                ),
+                                onPressed: _choiceControllers.length > 2
+                                    ? () => _removeChoice(index)
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+
+                      // Add choice button
+                      TextButton.icon(
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Choice'),
+                        onPressed: _addChoice,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Correct answer for multiple choice
+                      TextField(
+                        controller: _answerController,
+                        decoration: const InputDecoration(
+                          labelText:
+                              'Correct Answer (must match one of the choices)',
+                        ),
+                      ),
+                    ] else if (_selectedType == 'fill_in_the_blank') ...[
+                      // Answer field
+                      TextField(
+                        controller: _answerController,
+                        decoration: const InputDecoration(
+                          labelText: 'Answer',
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Hint field
+                      TextField(
+                        controller: _hintController,
+                        decoration: const InputDecoration(
+                          labelText: 'Hint (optional)',
+                        ),
+                      ),
+                    ] else ...[
+                      // Simple answer field for question & answer
+                      TextField(
+                        controller: _answerController,
+                        decoration: const InputDecoration(
+                          labelText: 'Answer',
+                        ),
+                        maxLines: 3,
                       ),
                     ],
-                  ),
-                );
-              }),
-
-              // Add choice button
-              TextButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('Add Choice'),
-                onPressed: _addChoice,
-              ),
-              const SizedBox(height: 16),
-
-              // Correct answer for multiple choice
-              TextField(
-                controller: _answerController,
-                decoration: const InputDecoration(
-                  labelText: 'Correct Answer (must match one of the choices)',
-                  border: OutlineInputBorder(),
+                  ],
                 ),
               ),
-            ] else if (_selectedType == 'fill_in_the_blank') ...[
-              // Answer field
-              TextField(
-                controller: _answerController,
-                decoration: const InputDecoration(
-                  labelText: 'Answer',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Hint field
-              TextField(
-                controller: _hintController,
-                decoration: const InputDecoration(
-                  labelText: 'Hint (optional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ] else ...[
-              // Simple answer field for question & answer
-              TextField(
-                controller: _answerController,
-                decoration: const InputDecoration(
-                  labelText: 'Answer',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+            ),
+          );
+        });
   }
 }

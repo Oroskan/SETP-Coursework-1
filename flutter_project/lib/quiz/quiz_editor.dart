@@ -39,15 +39,52 @@ class _QuizEditorPageState extends State<QuizEditorPage> {
   }
 
   void _saveChanges() {
-    if (_titleController.text.trim().isNotEmpty) {
-      _editedQuiz.title = _titleController.text.trim();
-      Navigator.pop(context, _editedQuiz);
-    } else {
+    if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Quiz title cannot be empty'),
+        SnackBar(
+          content: const Text('Quiz title cannot be empty'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
+      return;
+    }
+
+    // Display a warning if saving a quiz with no questions
+    if (_editedQuiz.questions.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) => Theme(
+          data: Theme.of(context),
+          child: AlertDialog(
+            title: Text(
+              'Quiz Has No Questions',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+            content: const Text(
+              'This quiz doesn\'t have any questions yet. You won\'t be able to take the quiz until you add at least one question.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Add Questions'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _editedQuiz.title = _titleController.text.trim();
+                  Navigator.pop(context, _editedQuiz);
+                },
+                child: const Text('Save Anyway'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      _editedQuiz.title = _titleController.text.trim();
+      Navigator.pop(context, _editedQuiz);
     }
   }
 
@@ -121,19 +158,25 @@ class _QuizEditorPageState extends State<QuizEditorPage> {
                       maxLength: 50,
                     ),
                     const SizedBox(height: 24),
-                    const Text(
+                    Text(
                       'Questions',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Expanded(
                       child: _editedQuiz.questions.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text(
-                                  'No questions yet. Tap + to add a question.'),
+                                'No questions yet. Tap + to add a question.',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.6),
+                                ),
+                              ),
                             )
                           : ListView.builder(
                               itemCount: _editedQuiz.questions.length,
@@ -142,14 +185,28 @@ class _QuizEditorPageState extends State<QuizEditorPage> {
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 8.0),
                                   child: ListTile(
-                                    title: Text(question.question),
-                                    subtitle: Text(question is MultipleChoice
-                                        ? 'Multiple Choice'
-                                        : question is QuestionAnswer
-                                            ? 'Question & Answer'
-                                            : 'Fill in the Blank'),
+                                    title: Text(
+                                      question.question,
+                                      style: TextStyle(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      question is MultipleChoice
+                                          ? 'Multiple Choice'
+                                          : question is QuestionAnswer
+                                              ? 'Question & Answer'
+                                              : 'Fill in the Blank',
+                                      style: TextStyle(
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
                                     trailing: IconButton(
-                                      icon: const Icon(Icons.delete),
+                                      icon: Icon(
+                                        Icons.delete,
+                                        color: theme.colorScheme.error,
+                                      ),
                                       onPressed: () {
                                         setState(() {
                                           _editedQuiz.questions.removeAt(index);

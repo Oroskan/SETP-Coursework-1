@@ -17,6 +17,8 @@ ThemeData getTheme(bool darkMode) {
   final textColor = darkMode ? Colors.white : const Color(0xFF000000);
   final secondaryColor =
       darkMode ? const Color(0xFF64D2FF) : const Color(0xFF5AC8FA);
+  final successColor =
+      darkMode ? const Color(0xFF30D158) : const Color(0xFF34C759);
 
   return baseTheme.copyWith(
     primaryColor: primaryColor,
@@ -28,6 +30,7 @@ ThemeData getTheme(bool darkMode) {
       secondary: secondaryColor,
       surface: surfaceColor,
       onSurface: textColor,
+      tertiary: successColor,
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: surfaceColor,
@@ -60,6 +63,28 @@ ThemeData getTheme(bool darkMode) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(foregroundColor: primaryColor),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: textColor.withOpacity(0.5)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: primaryColor, width: 2.0),
+      ),
+      labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+      floatingLabelStyle: TextStyle(color: primaryColor),
     ),
   );
 }

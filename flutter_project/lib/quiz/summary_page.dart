@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import '/quiz/quiz.dart';
-import '/quiz/question_page.dart';
+import '/quiz/review_page.dart';
+import '/quiz/quiz_menu.dart';
+import '../theme.dart';
 
 class _PurpleRowItem extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
-  
+
   const _PurpleRowItem({
-    Key? key,
     required this.title,
     required this.onTap,
-  }) : super(key: key);
-  
+  });
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: onTap,
       child: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFFEADDFF),
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.secondaryContainer,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(15),
             topRight: Radius.circular(15),
           ),
@@ -35,8 +38,8 @@ class _PurpleRowItem extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.black,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSecondaryContainer,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -44,9 +47,9 @@ class _PurpleRowItem extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios,
-              color: Color(0xFF65558F),
+              color: theme.colorScheme.secondary,
               size: 18,
             ),
           ],
@@ -61,226 +64,188 @@ class QuizSummary extends StatefulWidget {
   final int incorrectAnswers;
   final String message;
   final double timeTaken;
+  final List<Map<String, dynamic>>? userAnswers;
+  final Quiz? quiz;
 
   const QuizSummary({
-    Key? key,
+    super.key,
     required this.correctAnswers,
     required this.incorrectAnswers,
     required this.message,
     required this.timeTaken,
-  }) : super(key: key);
+    this.userAnswers,
+    this.quiz,
+  });
 
   @override
   State<QuizSummary> createState() => _QuizSummary();
 }
 
 class _QuizSummary extends State<QuizSummary> {
-  final int correctAnswers = 5;
-  final int totalQuestions = 11;
-
-  double get percentage => correctAnswers / totalQuestions;
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
+    return ValueListenableBuilder<bool>(
+      valueListenable: darkModeNotifier,
+      builder: (context, isDarkMode, _) {
+        final theme = getTheme(isDarkMode);
 
-
-        leading: IconButton(
-          onPressed: () {
-
-      
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.close),
-        ),
-        
-        
-      ),
-   
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-                              "${widget.message}",
-                              style: TextStyle(
-                                fontSize: 40,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                              overflow: TextOverflow.ellipsis, // Ensures text doesn't overflow
-                            ),
-                            SizedBox(height: 20,),
-        SummaryWidget(
-          timeTaken: widget.timeTaken, 
-          numberCorrect: widget.correctAnswers.toDouble(), 
-          numberIncorrect: widget.incorrectAnswers.toDouble(), 
-          correctPrimaryColor: Color(0xFF2FB273),
-          correctSecondaryColor: Color(0xFFE1FDF5),
-          incorrectPrimaryColor:Color(0xFFDD4300),
-          incorrectSecondaryColor: Color(0xFFFFF6EE),
-          ),
-          SizedBox(height: 70,),
-
-          _PurpleRowItem(
-      title: 'Take a new test',
-      onTap: () {
-        Navigator.pop(context);
-        Navigator.push<int>(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => QuizScreen(
-                    completedQuizzes: 2,
-                    cardColor: Colors.white,
-                    backgroundColor: const Color.fromARGB(255, 239, 239, 239),
-                    quiz: Quiz(questions: [
-  MultipleChoice(
-    question: 'Which planet in our solar system has the most moons?',
-    choices: ['Earth', 'Mars', 'Jupiter', 'Saturn'],
-    answer: 'Saturn',
-  ),
-  MultipleChoice(
-    question: 'What is the rarest blood type in humans?',
-    choices: ['O+', 'A-', 'B+', 'AB-'],
-    answer: 'AB-',
-  ),
-  MultipleChoice(
-    question: 'Which element has the highest melting point?',
-    choices: ['Iron', 'Tungsten', 'Gold', 'Platinum'],
-    answer: 'Tungsten',
-  ),
-  MultipleChoice(
-    question: 'Who developed the theory of general relativity?',
-    choices: ['Isaac Newton', 'Albert Einstein', 'Nikola Tesla', 'Galileo Galilei'],
-    answer: 'Albert Einstein',
-  ),
-  MultipleChoice(
-    question: 'What is the only mammal capable of sustained flight?',
-    choices: ['Bat', 'Flying Squirrel', 'Eagle', 'Sugar Glider'],
-    answer: 'Bat',
-  ),
-  MultipleChoice(
-    question: 'Which country has won the most FIFA World Cup titles?',
-    choices: ['Germany', 'Argentina', 'Brazil', 'France'],
-    answer: 'Brazil',
-  ),
-  MultipleChoice(
-    question: 'What is the longest river in the world?',
-    choices: ['Amazon River', 'Yangtze River', 'Mississippi River', 'Nile River'],
-    answer: 'Nile River',
-  ),
-  MultipleChoice(
-    question: 'What is the smallest unit of matter?',
-    choices: ['Molecule', 'Atom', 'Proton', 'Quark'],
-    answer: 'Quark',
-  ),
-  MultipleChoice(
-    question: 'Which programming language is known as the "language of the web"?',
-    choices: ['Python', 'C++', 'JavaScript', 'Java'],
-    answer: 'JavaScript',
-  ),
-  MultipleChoice(
-    question: 'What is the main ingredient in traditional Japanese miso soup?',
-    choices: ['Tofu', 'Soybeans', 'Seaweed', 'Rice'],
-    answer: 'Soybeans',
-  ),
-]),
+        return Theme(
+          data: theme,
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.close),
+              ),
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.message,
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              );
-      },
-      
+                  const SizedBox(height: 20),
+                  SummaryWidget(
+                    timeTaken: widget.timeTaken,
+                    numberCorrect: widget.correctAnswers.toDouble(),
+                    numberIncorrect: widget.incorrectAnswers.toDouble(),
+                    theme: theme,
+                  ),
+                  const SizedBox(height: 70),
+                  _PurpleRowItem(
+                    title: 'Take a new test',
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const QuizMenu(),
+                        ),
+                        (Route<dynamic> route) =>
+                            false, // Remove all previous routes
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _PurpleRowItem(
+                    title: 'Review answers',
+                    onTap: () {
+                      if (widget.userAnswers != null &&
+                          widget.userAnswers!.isNotEmpty) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReviewPage(
+                              userAnswers: widget.userAnswers!,
+                            ),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('No answers to review'),
+                            backgroundColor: theme.colorScheme.error,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
-          SizedBox(height: 20,),
-          _PurpleRowItem(
-      title: 'Review answers',
-      onTap: () {
-        
-      },),
-
-          ],
-        ),
-      ),
+        );
+      },
     );
   }
-
-
 }
-
 
 class SummaryWidget extends StatelessWidget {
   final double timeTaken;
   final double numberCorrect;
   final double numberIncorrect;
-  final Color correctPrimaryColor;
-  final Color correctSecondaryColor;
-  final Color incorrectPrimaryColor;
-  final Color incorrectSecondaryColor;
+  final ThemeData? theme;
 
-  SummaryWidget({
+  const SummaryWidget({
+    super.key,
     required this.timeTaken,
     required this.numberCorrect,
     required this.numberIncorrect,
-    required this.correctPrimaryColor,
-    required this.correctSecondaryColor,
-    required this.incorrectPrimaryColor,
-    required this.incorrectSecondaryColor,
+    this.theme,
   });
 
   @override
   Widget build(BuildContext context) {
+    final currentTheme = theme ?? Theme.of(context);
     double total = numberCorrect + numberIncorrect;
 
-    // Calculate percentages
     double correctPercentage = (total > 0) ? (numberCorrect / total) : 0;
 
-    return Center( 
+    final correctPrimaryColor = currentTheme.colorScheme.tertiary;
+    final correctSecondaryColor =
+        currentTheme.colorScheme.tertiary.withOpacity(0.2);
+    final incorrectPrimaryColor = currentTheme.colorScheme.error;
+    final incorrectSecondaryColor =
+        currentTheme.colorScheme.error.withOpacity(0.1);
+
+    return Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 400, 
+        constraints: const BoxConstraints(
+          maxWidth: 400,
         ),
         child: Container(
-          padding: const EdgeInsets.all(20), 
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Color(0xFFF6F7FB), 
+            color: currentTheme.cardTheme.color ??
+                currentTheme.colorScheme.surface,
             borderRadius: BorderRadius.circular(15), // Curved corners
             border: Border.all(
-              color: Colors.grey, // Grey border color
-              width: 2, // Border width
+              color: currentTheme.colorScheme.outline,
+              width: 2,
             ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, 
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Completed in ${timeTaken} seconds.',
+                'Completed in $timeTaken seconds.',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF556385),
+                  color: currentTheme.colorScheme.primary,
                 ),
-                overflow: TextOverflow.ellipsis, 
+                overflow: TextOverflow.ellipsis,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center, 
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Custom circle for correct percentage
                   CustomPaint(
-                    size: const Size(100, 100), // Circle size
-                    painter: CirclePainter(correctPercentage),
+                    size: const Size(100, 100),
+                    painter: CirclePainter(
+                      correctPercentage,
+                      theme: currentTheme,
+                    ),
                   ),
-                  const SizedBox(width: 30), 
+                  const SizedBox(width: 30),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Correct Section
                       Row(
-                        mainAxisSize: MainAxisSize.min, 
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
+                          SizedBox(
                             width: 100,
                             child: Text(
                               'Correct',
@@ -292,8 +257,7 @@ class SummaryWidget extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(width: 10), 
-
+                          const SizedBox(width: 10),
                           ScoreBubble(
                             score: numberCorrect.toInt(),
                             innerColor: correctSecondaryColor,
@@ -301,13 +265,13 @@ class SummaryWidget extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20), // Spacer between correct and incorrect rows
+                      const SizedBox(height: 20),
 
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 100, // Fixed width to ensure consistency
+                          SizedBox(
+                            width: 100,
                             child: Text(
                               'Incorrect',
                               style: TextStyle(
@@ -318,8 +282,7 @@ class SummaryWidget extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(width: 10), // Spacer between label and bubble
-
+                          const SizedBox(width: 10),
                           ScoreBubble(
                             score: numberIncorrect.toInt(),
                             innerColor: incorrectSecondaryColor,
@@ -341,40 +304,54 @@ class SummaryWidget extends StatelessWidget {
 
 class CirclePainter extends CustomPainter {
   final double percentage;
+  final ThemeData? theme;
 
-  CirclePainter(this.percentage);
+  CirclePainter(
+    this.percentage, {
+    this.theme,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
+    final currentTheme = theme ?? ThemeData.light();
+    final backgroundColor = currentTheme.colorScheme.surfaceContainerHighest;
+    final correctColor = currentTheme.colorScheme.tertiary;
+    final incorrectColor = currentTheme.colorScheme.error;
+    final textColor = currentTheme.colorScheme.onSurface;
+
     Paint backgroundCirclePaint = Paint()
-      ..color = Colors.grey.shade300
+      ..color = backgroundColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 20; // Set stroke width for the background circle
+      ..strokeWidth = 20;
 
     Paint progressPaint = Paint()
-      ..color = const Color(0xFF45ECB1) // Green portion representing correct answers
+      ..color = correctColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 20; // Set stroke width for the progress arc
+      ..strokeWidth = 20;
 
     Paint incompletePaint = Paint()
-      ..color = const Color(0xFFF8910B) // Orange portion representing incorrect answers
+      ..color = incorrectColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 20; // Set stroke width for the incomplete arc
+      ..strokeWidth = 20;
 
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width / 2, backgroundCirclePaint);
+    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width / 2,
+        backgroundCirclePaint);
 
-    double correctAngle = 2 * pi * percentage; // Angle for the green section
-    Rect rect = Rect.fromCircle(center: Offset(size.width / 2, size.height / 2), radius: size.width / 2);
-    canvas.drawArc(rect, -pi / 2, correctAngle, false, progressPaint); // Draw the arc without filling the middle
+    double correctAngle = 2 * pi * percentage;
+    Rect rect = Rect.fromCircle(
+        center: Offset(size.width / 2, size.height / 2),
+        radius: size.width / 2);
+    canvas.drawArc(rect, -pi / 2, correctAngle, false, progressPaint);
 
     double incorrectAngle = 2 * pi * (1 - percentage);
-    canvas.drawArc(rect, -pi / 2 + correctAngle, incorrectAngle, false, incompletePaint); 
+    canvas.drawArc(
+        rect, -pi / 2 + correctAngle, incorrectAngle, false, incompletePaint);
 
     String percentageText = '${(percentage * 100).toStringAsFixed(0)}%';
     TextSpan textSpan = TextSpan(
       text: percentageText,
       style: TextStyle(
-        color: const Color(0xFF909BB6), 
+        color: textColor,
         fontSize: 30,
         fontWeight: FontWeight.bold,
       ),
@@ -408,10 +385,11 @@ class CirclePainter extends CustomPainter {
 
 class ScoreBubble extends StatelessWidget {
   final int score;
-  final Color innerColor; 
-  final Color outerColor; 
+  final Color innerColor;
+  final Color outerColor;
 
-  ScoreBubble({
+  const ScoreBubble({
+    super.key,
     required this.score,
     required this.innerColor,
     required this.outerColor,
@@ -421,11 +399,11 @@ class ScoreBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: innerColor, 
-        borderRadius: BorderRadius.circular(30), 
+        color: innerColor,
+        borderRadius: BorderRadius.circular(30),
         border: Border.all(
           color: outerColor,
-          width: 3, // Border width
+          width: 3,
         ),
       ),
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
@@ -440,5 +418,3 @@ class ScoreBubble extends StatelessWidget {
     );
   }
 }
-
-

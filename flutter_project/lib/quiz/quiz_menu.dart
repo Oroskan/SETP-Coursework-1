@@ -7,6 +7,7 @@ import '../settings_menu.dart';
 import 'quiz.dart';
 import 'create_quiz.dart';
 import 'quiz_editor.dart';
+import 'question_page.dart';
 
 class QuizMenu extends StatefulWidget {
   const QuizMenu({super.key});
@@ -121,18 +122,73 @@ class _QuizMenuState extends State<QuizMenu> {
     });
   }
 
+  void _editQuiz(int index) async {
+    final quiz = filteredQuizzes[index];
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizEditorPage(
+          quiz: quiz,
+          quizIndex: index,
+        ),
+      ),
+    );
+    if (result != null && result is Quiz) {
+      setState(() {
+        // Update the quiz in the box
+        final boxIndex = quizzesBox.values.toList().indexOf(quiz);
+        if (boxIndex >= 0) {
+          quizzesBox.putAt(boxIndex, result);
+        }
+      });
+    }
+  }
+
+  void _takeQuiz(Quiz quiz) {
+    if (quiz.questions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+              'This quiz has no questions yet. Add questions before taking the quiz.'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push<int>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizScreen(
+          quiz: quiz,
+          completedQuizzes: 0,
+        ),
+      ),
+    );
+  }
+
   Future<bool> _confirmDelete() async {
     return await showDialog(
           context: context,
           builder: (BuildContext context) => AlertDialog(
-            title: const Text('Delete Quiz'),
-            content: const Text('Are you sure you want to delete this quiz?'),
+            title: Text(
+              'Delete Quiz',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
+            content: Text(
+              'Are you sure you want to delete this quiz?',
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
                 child: const Text('Cancel'),
               ),
               TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
                 onPressed: () => Navigator.of(context).pop(true),
                 child: const Text('Delete'),
               ),
@@ -181,8 +237,14 @@ class _QuizMenuState extends State<QuizMenu> {
                       ),
                     ),
                     ListTile(
-                      leading: const Icon(Icons.settings),
-                      title: const Text('Settings'),
+                      leading: Icon(
+                        Icons.settings,
+                        color: theme.colorScheme.primary,
+                      ),
+                      title: Text(
+                        'Settings',
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -202,7 +264,10 @@ class _QuizMenuState extends State<QuizMenu> {
                       controller: _searchController,
                       decoration: InputDecoration(
                         hintText: 'Search quizzes...',
-                        prefixIcon: const Icon(Icons.search),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -253,7 +318,7 @@ class _QuizMenuState extends State<QuizMenu> {
                   ),
                 ],
               ),
-              floatingActionButton: _buildAddQuizButton(),
+              floatingActionButton: _buildAddQuizButton(theme),
               floatingActionButtonLocation:
                   FloatingActionButtonLocation.centerDocked,
               bottomNavigationBar: NavigationBar(
@@ -288,18 +353,35 @@ class _QuizMenuState extends State<QuizMenu> {
   Widget _buildQuizButton(Quiz quiz, int index, ThemeData theme) {
     return Dismissible(
       key: Key(quiz.key.toString()),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmDelete(),
+      direction: DismissDirection.horizontal,
+      confirmDismiss: (direction) {
+        if (direction == DismissDirection.endToStart) {
+          return _confirmDelete();
+        } else {
+          _editQuiz(index);
+          return Future.value(false);
+        }
+      },
       onDismissed: (_) => _deleteQuiz(index),
       background: Container(
         margin: const EdgeInsets.only(top: 16.0),
         decoration: BoxDecoration(
-          color: Colors.red,
+          color: theme.colorScheme.primary,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20.0),
+        child: Icon(Icons.edit, color: theme.colorScheme.onPrimary),
+      ),
+      secondaryBackground: Container(
+        margin: const EdgeInsets.only(top: 16.0),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error,
           borderRadius: BorderRadius.circular(8.0),
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20.0),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: Icon(Icons.delete, color: theme.colorScheme.onError),
       ),
       child: Container(
         margin: const EdgeInsets.only(top: 16.0),
@@ -307,31 +389,13 @@ class _QuizMenuState extends State<QuizMenu> {
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
             padding: const EdgeInsets.all(16.0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => QuizEditorPage(
-                  quiz: quiz,
-                  quizIndex: index,
-                ),
-              ),
-            );
-            if (result != null && result is Quiz) {
-              setState(() {
-                // Update the quiz in the box
-                final boxIndex = quizzesBox.values.toList().indexOf(quiz);
-                if (boxIndex >= 0) {
-                  quizzesBox.putAt(boxIndex, result);
-                }
-              });
-            }
-          },
+          onPressed: () => _takeQuiz(quiz),
           child: Column(
             children: [
               Icon(Icons.quiz, color: theme.colorScheme.onPrimary, size: 30),
@@ -358,7 +422,7 @@ class _QuizMenuState extends State<QuizMenu> {
     );
   }
 
-  Widget _buildAddQuizButton() {
+  Widget _buildAddQuizButton(ThemeData theme) {
     return Align(
       alignment: Alignment.bottomRight,
       child: Container(
@@ -366,6 +430,8 @@ class _QuizMenuState extends State<QuizMenu> {
         height: 64,
         width: 64,
         child: FloatingActionButton(
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
           onPressed: _addNewQuiz,
           child: const Text('+', style: TextStyle(fontSize: 18)),
         ),

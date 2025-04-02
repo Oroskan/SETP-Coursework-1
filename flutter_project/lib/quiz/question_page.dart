@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'quiz.dart';
 import 'summary_page.dart';
+import '../theme.dart';
 
 bool answered = false;
 
 class QuizScreen extends StatefulWidget {
-  final Color cardColor;
-  final Color backgroundColor;
-  final int completedQuizzes;
   final Quiz quiz;
+  final int completedQuizzes;
 
   const QuizScreen({
     super.key,
-    required this.backgroundColor,
-    required this.cardColor,
-    required this.completedQuizzes,
     required this.quiz,
+    required this.completedQuizzes,
   });
 
   @override
@@ -32,10 +29,19 @@ class QuizScreenState extends State<QuizScreen> {
   String? userAnswer;
   final textController = TextEditingController();
 
+  // Track user answers for review
+  List<Map<String, dynamic>> userAnswers = [];
+
   void skipQuestion() {
     setState(() {
       if (!answered) {
         incorrectCount++;
+        // Record skipped question
+        userAnswers.add({
+          'question': widget.quiz.questions[currentQuestionIndex],
+          'userAnswer': null,
+          'isCorrect': false
+        });
       }
       answered = false;
       userAnswer = null;
@@ -56,6 +62,8 @@ class QuizScreenState extends State<QuizScreen> {
               timeTaken: double.parse(
                   ((DateTime.now().millisecondsSinceEpoch / 1000) - (startTime))
                       .toStringAsFixed(2)),
+              userAnswers: userAnswers,
+              quiz: widget.quiz,
             ),
           ),
         );
@@ -70,12 +78,22 @@ class QuizScreenState extends State<QuizScreen> {
       MultipleChoice currentQuestion =
           widget.quiz.questions[currentQuestionIndex] as MultipleChoice;
       answered = true;
+      String selectedAnswer = currentQuestion.choices[index];
+      userAnswer = selectedAnswer;
+      bool isCorrect = selectedAnswer == currentQuestion.answer;
 
-      if (currentQuestion.choices[index] == currentQuestion.answer) {
+      if (isCorrect) {
         correctCount++;
       } else {
         incorrectCount++;
       }
+
+      // Record the answer
+      userAnswers.add({
+        'question': currentQuestion,
+        'userAnswer': selectedAnswer,
+        'isCorrect': isCorrect
+      });
     });
   }
 
@@ -87,13 +105,21 @@ class QuizScreenState extends State<QuizScreen> {
           widget.quiz.questions[currentQuestionIndex] as QuestionAnswer;
       answered = true;
       userAnswer = textController.text;
+      bool isCorrect = textController.text.trim().toLowerCase() ==
+          currentQuestion.answer.toLowerCase();
 
-      if (textController.text.trim().toLowerCase() ==
-          currentQuestion.answer.toLowerCase()) {
+      if (isCorrect) {
         correctCount++;
       } else {
         incorrectCount++;
       }
+
+      // Record the answer
+      userAnswers.add({
+        'question': currentQuestion,
+        'userAnswer': textController.text,
+        'isCorrect': isCorrect
+      });
     });
   }
 
@@ -105,102 +131,177 @@ class QuizScreenState extends State<QuizScreen> {
           widget.quiz.questions[currentQuestionIndex] as FillInTheBlank;
       answered = true;
       userAnswer = textController.text;
+      bool isCorrect = textController.text.trim().toLowerCase() ==
+          currentQuestion.answer.toLowerCase();
 
-      if (textController.text.trim().toLowerCase() ==
-          currentQuestion.answer.toLowerCase()) {
+      if (isCorrect) {
         correctCount++;
       } else {
         incorrectCount++;
       }
+
+      // Record the answer
+      userAnswers.add({
+        'question': currentQuestion,
+        'userAnswer': textController.text,
+        'isCorrect': isCorrect
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    Question currentQuestion = widget.quiz.questions[currentQuestionIndex];
+    return ValueListenableBuilder<bool>(
+      valueListenable: darkModeNotifier,
+      builder: (context, isDarkMode, _) {
+        final theme = getTheme(isDarkMode);
 
-    return Scaffold(
-      backgroundColor: widget.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: widget.backgroundColor,
-        leading: IconButton(
-          onPressed: () {
-            if (currentQuestionIndex == widget.quiz.questions.length - 1) {
-              Navigator.pop(context, widget.completedQuizzes + 1);
-            } else {
-              Navigator.pop(context, widget.completedQuizzes);
-            }
-          },
-          icon: const Icon(Icons.close),
-        ),
-        title: SizedBox(
-          height: 20,
-          child: CurvedProgressBar(
-            percentage: currentQuestionIndex / widget.quiz.questions.length,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Stack(
-        children: [
-          Column(
-            children: <Widget>[
-              const Divider(
-                color: Color.fromARGB(255, 0, 0, 0),
-                thickness: 2,
-                indent: 30,
-                endIndent: 30,
+        // Safety check for quizzes with no questions
+        if (widget.quiz.questions.isEmpty) {
+          return Theme(
+            data: theme,
+            child: Scaffold(
+              appBar: AppBar(
+                leading: IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+                title: const Text('Error'),
+                centerTitle: true,
               ),
-              Aligned(
-                amount: 30,
-                child: Text(
-                  currentQuestion.question,
-                  textAlign: TextAlign.left,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                    letterSpacing: 0.7,
-                    fontFamily: 'Raleway',
-                  ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 80,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'This quiz has no questions',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please add questions before taking this quiz',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Go Back'),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 30),
+            ),
+          );
+        }
 
-              // Different question types require different UI
-              if (currentQuestion is MultipleChoice)
-                _buildMultipleChoiceQuestion(currentQuestion)
-              else if (currentQuestion is QuestionAnswer)
-                _buildQuestionAnswerQuestion(currentQuestion)
-              else if (currentQuestion is FillInTheBlank)
-                _buildFillInTheBlankQuestion(currentQuestion),
+        Question currentQuestion = widget.quiz.questions[currentQuestionIndex];
 
-              const SizedBox(height: 30),
-
-              Aligned(
-                amount: 150.0,
-                child: CustomTextDisplayBox(
-                  color: widget.cardColor,
-                  key: const ValueKey(-1),
-                  text: answered ? 'Continue' : 'Skip',
-                  onTap: skipQuestion,
+        return Theme(
+          data: theme,
+          child: Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                onPressed: () {
+                  if (currentQuestionIndex ==
+                      widget.quiz.questions.length - 1) {
+                    Navigator.pop(context, widget.completedQuizzes + 1);
+                  } else {
+                    Navigator.pop(context, widget.completedQuizzes);
+                  }
+                },
+                icon: const Icon(Icons.close),
+              ),
+              title: SizedBox(
+                height: 20,
+                child: CurvedProgressBar(
+                  percentage:
+                      currentQuestionIndex / widget.quiz.questions.length,
+                  progressColor: theme.colorScheme.primary,
+                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
                 ),
               ),
-            ],
+              centerTitle: true,
+            ),
+            body: Stack(
+              children: [
+                Column(
+                  children: <Widget>[
+                    Divider(
+                      color: theme.dividerTheme.color,
+                      thickness: theme.dividerTheme.thickness,
+                      indent: 30,
+                      endIndent: 30,
+                    ),
+                    Aligned(
+                      amount: 30,
+                      child: Text(
+                        currentQuestion.question,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                          letterSpacing: 0.7,
+                          fontFamily: 'Raleway',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Different question types require different UI
+                    if (currentQuestion is MultipleChoice)
+                      _buildMultipleChoiceQuestion(currentQuestion, theme)
+                    else if (currentQuestion is QuestionAnswer)
+                      _buildQuestionAnswerQuestion(currentQuestion, theme)
+                    else if (currentQuestion is FillInTheBlank)
+                      _buildFillInTheBlankQuestion(currentQuestion, theme),
+
+                    const SizedBox(height: 30),
+
+                    Aligned(
+                      amount: 150.0,
+                      child: CustomTextDisplayBox(
+                        color:
+                            theme.cardTheme.color ?? theme.colorScheme.surface,
+                        key: const ValueKey(-1),
+                        text: answered ? 'Continue' : 'Skip',
+                        onTap: skipQuestion,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildMultipleChoiceQuestion(MultipleChoice question) {
+  Widget _buildMultipleChoiceQuestion(
+      MultipleChoice question, ThemeData theme) {
     return Column(
       children: [
         for (int i = 0; i < question.choices.length; i++)
           Aligned(
             amount: 30,
             child: CustomTextDisplayBox(
-              color: widget.cardColor,
+              color: theme.cardTheme.color ?? theme.colorScheme.surface,
               key: ValueKey('$currentQuestionIndex-$i'),
               text: question.choices[i],
               hotkey: '${i + 1}',
@@ -208,13 +309,15 @@ class QuizScreenState extends State<QuizScreen> {
               isCorrect:
                   answered ? question.choices[i] == question.answer : null,
               isSelected: false,
+              theme: theme,
             ),
           ),
       ],
     );
   }
 
-  Widget _buildQuestionAnswerQuestion(QuestionAnswer question) {
+  Widget _buildQuestionAnswerQuestion(
+      QuestionAnswer question, ThemeData theme) {
     return Aligned(
       amount: 30,
       child: Column(
@@ -227,22 +330,13 @@ class QuizScreenState extends State<QuizScreen> {
               enabled: !answered,
               decoration: InputDecoration(
                 hintText: 'Type your answer here',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
                 filled: true,
-                fillColor: widget.cardColor,
+                fillColor: theme.cardTheme.color ?? theme.colorScheme.surface,
               ),
             ),
           ),
           ElevatedButton(
             onPressed: answered ? null : answerQuestionAnswer,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: widget.cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-            ),
             child: const Text('Submit Answer'),
           ),
           if (answered)
@@ -253,8 +347,9 @@ class QuizScreenState extends State<QuizScreen> {
                     ? 'Correct! The answer is: ${question.answer}'
                     : 'Incorrect. The correct answer is: ${question.answer}',
                 style: TextStyle(
-                  color:
-                      userAnswer == question.answer ? Colors.green : Colors.red,
+                  color: userAnswer == question.answer
+                      ? theme.colorScheme.tertiary
+                      : theme.colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -264,7 +359,8 @@ class QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  Widget _buildFillInTheBlankQuestion(FillInTheBlank question) {
+  Widget _buildFillInTheBlankQuestion(
+      FillInTheBlank question, ThemeData theme) {
     return Aligned(
       amount: 30,
       child: Column(
@@ -277,7 +373,7 @@ class QuizScreenState extends State<QuizScreen> {
                 'Hint: ${question.hint}',
                 style: TextStyle(
                   fontStyle: FontStyle.italic,
-                  color: Colors.grey[700],
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
             ),
@@ -288,22 +384,13 @@ class QuizScreenState extends State<QuizScreen> {
               enabled: !answered,
               decoration: InputDecoration(
                 hintText: 'Fill in the blank',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
                 filled: true,
-                fillColor: widget.cardColor,
+                fillColor: theme.cardTheme.color ?? theme.colorScheme.surface,
               ),
             ),
           ),
           ElevatedButton(
             onPressed: answered ? null : answerFillInTheBlank,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: widget.cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-            ),
             child: const Text('Submit Answer'),
           ),
           if (answered)
@@ -314,8 +401,9 @@ class QuizScreenState extends State<QuizScreen> {
                     ? 'Correct! The answer is: ${question.answer}'
                     : 'Incorrect. The correct answer is: ${question.answer}',
                 style: TextStyle(
-                  color:
-                      userAnswer == question.answer ? Colors.green : Colors.red,
+                  color: userAnswer == question.answer
+                      ? theme.colorScheme.tertiary
+                      : theme.colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -357,6 +445,7 @@ class CustomTextDisplayBox extends StatefulWidget {
   final bool? isSelected;
   final VoidCallback onTap;
   final Color color;
+  final ThemeData? theme;
 
   const CustomTextDisplayBox({
     required Key key,
@@ -366,6 +455,7 @@ class CustomTextDisplayBox extends StatefulWidget {
     this.isSelected,
     required this.onTap,
     required this.color,
+    this.theme,
   }) : super(key: key);
 
   @override
@@ -383,8 +473,11 @@ class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
 
   void _handleTap() {
     if (!answered && widget.isCorrect != null) {
+      final theme = widget.theme ?? Theme.of(context);
       setState(() {
-        _boxColor = widget.isCorrect! ? Colors.green : Colors.red;
+        _boxColor = widget.isCorrect!
+            ? theme.colorScheme.tertiary.withOpacity(0.2)
+            : theme.colorScheme.error.withOpacity(0.2);
         answered = true;
       });
     }
@@ -394,12 +487,15 @@ class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = widget.theme ?? Theme.of(context);
+
     // Update color based on correct/incorrect status
     if (widget.isCorrect != null) {
-      _boxColor =
-          widget.isCorrect! ? Colors.green.shade200 : Colors.red.shade200;
+      _boxColor = widget.isCorrect!
+          ? theme.colorScheme.tertiary.withOpacity(0.2)
+          : theme.colorScheme.error.withOpacity(0.2);
     } else if (widget.isSelected == true) {
-      _boxColor = Colors.blue.shade200;
+      _boxColor = theme.colorScheme.primary.withOpacity(0.2);
     } else {
       _boxColor = widget.color;
     }
@@ -408,8 +504,8 @@ class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
       color: Colors.transparent,
       child: InkWell(
         onTap: _handleTap,
-        splashColor: Colors.blue.withOpacity(0.5),
-        highlightColor: Colors.blue.withOpacity(0.3),
+        splashColor: theme.colorScheme.primary.withOpacity(0.3),
+        highlightColor: theme.colorScheme.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(15.0),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
@@ -417,11 +513,11 @@ class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
           decoration: BoxDecoration(
             color: _boxColor,
             borderRadius: BorderRadius.circular(15.0),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
+                color: theme.shadowColor.withOpacity(0.2),
                 blurRadius: 10.0,
-                offset: Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -431,19 +527,24 @@ class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
               if (widget.hotkey != null) ...[
                 InkWell(
                   onTap: _handleTap,
-                  splashColor: Colors.blue.withOpacity(0.5),
+                  splashColor: theme.colorScheme.primary.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(4.0),
                   child: Container(
                     padding: const EdgeInsets.all(6.0),
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(4.0),
-                      border: Border.all(color: Colors.grey, width: 1.0),
+                      border: Border.all(
+                        color: theme.colorScheme.outline,
+                        width: 1.0,
+                      ),
                     ),
                     child: Text(
                       widget.hotkey!,
-                      style:
-                          const TextStyle(fontSize: 12.0, color: Colors.black),
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        color: theme.colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ),
@@ -452,7 +553,10 @@ class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
               Expanded(
                 child: Text(
                   widget.text,
-                  style: const TextStyle(fontSize: 18.0, color: Colors.black),
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
               ),
             ],
@@ -465,11 +569,23 @@ class CustomTextDisplayBoxState extends State<CustomTextDisplayBox> {
 
 class CurvedProgressBar extends StatelessWidget {
   final double percentage;
+  final Color? progressColor;
+  final Color? backgroundColor;
 
-  const CurvedProgressBar({super.key, required this.percentage});
+  const CurvedProgressBar({
+    super.key,
+    required this.percentage,
+    this.progressColor,
+    this.backgroundColor,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final progressColorToUse = progressColor ?? theme.colorScheme.primary;
+    final backgroundColorToUse =
+        backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         double width = constraints.maxWidth * 0.8;
@@ -477,7 +593,7 @@ class CurvedProgressBar extends StatelessWidget {
           width: width,
           height: 20.0,
           decoration: BoxDecoration(
-            color: Colors.grey[300],
+            color: backgroundColorToUse,
             borderRadius: BorderRadius.circular(10.0),
           ),
           child: FractionallySizedBox(
@@ -485,7 +601,7 @@ class CurvedProgressBar extends StatelessWidget {
             widthFactor: percentage,
             child: Container(
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 99, 174, 116),
+                color: progressColorToUse,
                 borderRadius: BorderRadius.circular(10.0),
               ),
             ),
