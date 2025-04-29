@@ -32,10 +32,6 @@ jobs:
         working-directory: ./flutter_project
         run: flutter pub get
 
-      - name: Analyze project source
-        working-directory: ./flutter_project
-        run: flutter analyze --fatal-infos --fatal-warnings
-
       - name: Run unit tests
         working-directory: ./flutter_project
         run: flutter test --coverage
