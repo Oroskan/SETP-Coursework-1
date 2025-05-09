@@ -24,9 +24,18 @@ jobs:
         working-directory: ./flutter_project
         run: flutter pub get
 
-      - name: Build IPA
+      - name: Build iOS .app
         working-directory: ./flutter_project
-        run: flutter build ipa --release --no-codesign
+        run: flutter build ios --release --no-codesign
+
+      - name: Create IPA
+        working-directory: ./flutter_project
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/Runner.app
+          zip -r App.ipa Payload/
+          rm -rf Payload
+
 
       - name: Upload Release IPA
         uses: actions/upload-artifact@v4
