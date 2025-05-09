@@ -26,10 +26,12 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       
-      - name: Install Flutter dependencies
+      - name: Install dependencies
+        working-directory: ./flutter_project
         run: flutter pub get
 
       - name: Build APK
+        working-directory: ./flutter_project
         run: flutter build apk
 
       
