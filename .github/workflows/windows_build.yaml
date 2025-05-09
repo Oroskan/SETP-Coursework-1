@@ -32,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: ./flutter_project/build/windows/runner/Release/*.exe
+          path: ./flutter_project/build/windows/x64/runner/Release/*.exe
