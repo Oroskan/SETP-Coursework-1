@@ -8,18 +8,6 @@
             "name": "Dart & Flutter",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main.dart"
-        },
-        {
-            "name": "Dart & Flutter (Web)",
-            "request": "launch",
-            "type": "dart",
-            "program": "web/main.dart"
-        },
-        {
-            "name": "Dart & Flutter",
-            "request": "launch",
-            "type": "dart",
             "program": "flutter_project/lib/main.dart"
         }
     ]
